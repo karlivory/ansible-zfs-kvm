@@ -1,0 +1,60 @@
+---
+# host: kvm_host
+# vars: zk_kvm
+
+- name: Install some packages
+  apt:
+    pkg:
+      - bridge-utils
+      - libguestfs-tools
+      - libvirt-clients
+      - libvirt-daemon
+      - libvirt-daemon-system
+      # - libvirt-dev # needed for python libvirt package (?)
+      - python3
+      - python3-pip
+      - python3-libvirt
+      - qemu-kvm
+      - sanoid
+      - virtinst
+
+# - name: Install some pip packages
+#   when: inventory_hostname in groups['kvm_hosts']
+#   pip:
+#     name:
+#       - libvirt-python
+#       - python3-libvirt
+
+- name: Ensure zk_kvm_zvol_parent zfs dataset exists
+  community.general.zfs:
+    name: "{{ zk_kvm.zvol_parent }}"
+    state: present
+    extra_zfs_properties:
+      mountpoint: none
+      canmount: off
+
+- set_fact:
+    repository_dir: "{{ zk_kvm.data_dir }}/repository"
+    images_dir: "{{ zk_kvm.data_dir }}/golden_images"
+    tmp_dir: "{{ zk_kvm.data_dir }}/tmp"
+
+- name: Ensure repository, golden_images and tmp directories exist under data_dir/
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - "{{ images_dir }}"
+    - "{{ repository_dir }}"
+    - "{{ tmp_dir }}"
+
+- name: Build golden image
+  # when: false #TODO:
+  include_tasks: ./build_golden_image/main.yml
+  vars:
+    golden_image_path: "{{ images_dir }}/{{ image.name }}/image.qcow2"
+    metadata_json_path: "{{ images_dir }}/{{ image.name }}/metadata.json"
+    intermediate_image_path: "{{ tmp_dir }}/{{ image.name }}-intermediate-{{ current_timestamp }}.qcow2"
+  loop: "{{ zk_kvm.images }}"
+  loop_control:
+    loop_var: image
+

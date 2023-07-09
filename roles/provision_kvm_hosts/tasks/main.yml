@@ -1,0 +1,11 @@
+---
+- set_fact:
+    current_timestamp: "{{ lookup('pipe', 'date +%s%N') }}"
+  when: current_timestamp is not defined
+  connection: local
+  run_once: true
+
+- name: Provision kvm_host
+  include_tasks: ./00_provision_kvm_host.yml
+  when:
+    - inventory_hostname in groups['zk_kvm_hosts']

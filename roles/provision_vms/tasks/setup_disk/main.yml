@@ -1,0 +1,43 @@
+---
+# host: kvm_host
+# vars: vm, zk_kvm, disk
+
+- set_fact:
+    zfs_volume: "{{ zk_kvm.zvol_parent }}/{{ disk.name }}"
+
+- set_fact:
+    vm_has_disk: false
+
+- name: Check domain xml whether it has a disk with matching source dev
+  community.general.xml:
+    xmlstring: "{{ vm_virsh_dumpxml.stdout }}"
+    xpath: "/domain/devices/disk/source[@dev='/dev/zvol/{{ zfs_volume }}']"
+    count: true
+  register: xml_count
+  delegate_to: localhost
+  connection: local
+
+- set_fact:
+    vm_has_disk: "{{ xml_count.count > 0 }}"
+
+- name: Check if zvol exists
+  set_fact:
+    volume_exists: "{{ zfs_volume in (zk_info.zvol_parent_volumes | map(attribute='name') | list) }}"
+
+- name: Create disk
+  when: not vm_has_disk and not volume_exists
+  include_tasks: ./create_disk.yml
+
+- set_fact:
+    tmp_disk_xml_path: "{{ vm_tmp_dir }}/{{ disk.name }}-disk.xml"
+  when: not vm_has_disk
+
+- name: Make disk libvirt xml template
+  when: not vm_has_disk
+  template:
+    src: "./disk.xml.j2"
+    dest: "{{ tmp_disk_xml_path }}"
+
+- name: Attach disk to domain
+  when: not vm_has_disk
+  shell: virsh attach-device "{{ vm.name }}" "{{ tmp_disk_xml_path }}" --persistent

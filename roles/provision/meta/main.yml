@@ -1,0 +1,6 @@
+---
+dependencies:
+  - name: karlivory.zk.build_facts
+  - name: karlivory.zk.validate_facts
+  - name: karlivory.zk.provision_kvm_hosts
+  - name: karlivory.zk.provision_vms

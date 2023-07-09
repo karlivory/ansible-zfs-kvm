@@ -1,0 +1,9 @@
+ansible
+dacite
+molecule
+pylint
+pytest
+pytest-mock
+pytest-forked
+pyyaml
+lxml

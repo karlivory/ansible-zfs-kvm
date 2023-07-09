@@ -1,0 +1,76 @@
+---
+# host: kvm_host
+# vars: vm, network
+
+- name: Check domain xml for nic
+  community.general.xml:
+    xmlstring: "{{ vm_virsh_dumpxml.stdout }}"
+    xpath: "/domain/devices/interface/address[@bus='0x{{ '%0.2x' | format(network.nic_bus) }}']"
+    count: true
+  register: xml_count
+  delegate_to: localhost
+  connection: local
+
+- set_fact:
+    vm_has_nic: "{{ xml_count.count > 0 }}"
+
+- set_fact:
+    tmp_nic_xml_path: "{{ vm_tmp_dir }}/{{ network.name }}-nic.xml"
+  when: not vm_has_nic
+
+- name: copy over network device file (*-nic.xml)
+  when: not vm_has_nic
+  template:
+    src: "./define_domain/nic.xml.j2"
+    dest: "{{ tmp_nic_xml_path }}"
+
+- name: attach nic to vm
+  when: not vm_has_nic
+  shell: "virsh attach-device {{ vm.name }} {{ tmp_nic_xml_path }} --persistent"
+
+- karlivory.zk.print_yaml:
+    data: "{{ network.netplan }}"
+  when: network.netplan
+  delegate_to: localhost
+  connection: local
+  register: netplan_yaml_print
+
+- name: Update vm netplan
+  karlivory.zk.qemu_guest_run_cmd:
+    domain: "{{ vm.name }}"
+    command: |
+      #!/bin/bash
+      CFG_FILE="/etc/netplan/enp{{ network.nic_bus }}s0-netcfg.yaml"
+      BAK_FILE="${CFG_FILE}.bak"
+
+      if [ -f "${CFG_FILE}" ]; then
+        OLD_SHA1SUM=$(sha1sum ${CFG_FILE} | cut -d " " -f1)
+        mv "${CFG_FILE}" "${BAK_FILE}"
+      fi
+
+      tee "${CFG_FILE}" <<EOF
+      # THIS IS FILE MANAGED BY ANSIBLE! DO NOT EDIT!
+      {{ netplan_yaml_print.output | default('') }}
+      EOF
+
+      NEW_SHA1SUM=$(sha1sum ${CFG_FILE} | cut -d " " -f1)
+
+      if [ "${OLD_SHA1SUM}" == "${NEW_SHA1SUM}" ]; then
+        echo "NETPLAN_CONFIG_UNCHANGED"
+        mv "${BAK_FILE}" "${CFG_FILE}"
+      elif ! netplan apply; then
+        echo "NETPLAN_APPLY_FAILED"
+        echo "Netplan apply failed, rolling back to previous configuration."
+        mv "${BAK_FILE}" "${CFG_FILE}"
+        netplan apply
+        exit 1
+      else
+        echo "NETPLAN_APPLY_SUCCESS"
+        rm -f "${BAK_FILE}"
+      fi
+    timeout: 20
+    poll: 0.1
+  register: run_cmd
+  changed_when:
+    - "'NETPLAN_APPLY_SUCCESS' in run_cmd.output.stdout | default('')"
+

@@ -1,0 +1,11 @@
+---
+# host: kvm_host
+# vars: vm
+
+- name: Try to ping qemu-guest-agent
+  shell: virsh qemu-agent-command --domain "{{ vm.name }}" '{"execute":"guest-ping"}'
+  changed_when: false
+  register: qemu_guest_ping
+  retries: 30
+  delay: 1
+  until: qemu_guest_ping.rc == 0

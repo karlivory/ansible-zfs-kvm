@@ -1,0 +1,15 @@
+[MASTER]
+init-hook='import sys; sys.path.append("../../../")'
+
+# ignore "missing * docstring" hints (for now)
+disable=
+    C0114, C0115, C0116
+
+[BASIC]
+# workaround for short variable names: https://github.com/pylint-dev/pylint/issues/2018
+variable-rgx=^[a-z][a-z0-9]*((_[a-z0-9]+)*)?$
+argument-rgx=^[a-z][a-z0-9]*((_[a-z0-9]+)*)?$
+good-names-rgxs=^[a-z][a-z0-9]*((_[a-z0-9]+)*)?$
+
+# [FORMAT]
+# max-line-length=120

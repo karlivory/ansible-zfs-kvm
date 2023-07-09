@@ -1,0 +1,42 @@
+---
+- name: Destroy
+  hosts: all
+  gather_facts: false
+  no_log: "{{ molecule_no_log }}"
+  tasks: []
+  # TODO: implement this once zk_vm_state is implemented
+    # - set_fact:
+    #     vm_zvol: "{{ hostvars[zk_vm_kvm_host].zk_kvm_zvol_parent }}/{{ zk_vm_name }}" 
+    #   when:
+    #     - inventory_hostname in groups['zk_vms']
+    # - name: zvol to be destroyed
+    #   debug:
+    #     var: vm_zvol
+    #   when:
+    #     - inventory_hostname in groups['zk_vms']
+    #
+    # - name: Destroy the vm zvol
+    #   delegate_to: "{{ zk_vm_kvm_host }}"
+    #   community.general.zfs:
+    #     name: "{{ vm_zvol }}"
+    #     state: absent
+    #   when:
+    #     - inventory_hostname in groups['zk_vms']
+    #
+    # # because community.libvirt.virt does not have equivalent of state: absent
+    # - name: virsh destroy vm
+    #   delegate_to: "{{ zk_vm_kvm_host }}"
+    #   when:
+    #     - inventory_hostname in groups['zk_vms']
+    #   shell: |
+    #     if virsh list --all --name | grep -qxw {{ zk_vm_name }}; then
+    #       virsh destroy --domain {{ zk_vm_name }}
+    #       virsh undefine --domain {{ zk_vm_name }}
+    #       echo "task_result_is_changed" 
+    #       until virsh list --all --name | grep qxw {{ zk_vm_name }}
+    #       do
+    #         exit 0
+    #       done
+    #     fi
+    #   register: script_res
+    #   changed_when: "'task_result_is_changed' in script_res.stdout"

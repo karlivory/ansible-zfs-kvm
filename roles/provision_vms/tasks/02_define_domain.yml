@@ -1,0 +1,23 @@
+---
+# host: kvm_host
+# vars: vm, zk_kvm
+
+- set_fact:
+    domain_exists: "{{ vm.name in zk_info.virt_list_vms }}"
+    vm_tmp_dir: "{{ zk_kvm.data_dir }}/tmp/{{ vm.name }}"
+
+- name: Ensure vm tmp_dir exists
+  file:
+    path: "{{ vm_tmp_dir }}"
+    state: directory
+
+- name: Define domain (create image, zvol, define domain)
+  when: not domain_exists
+  import_tasks: ./define_domain/main.yml
+
+# TODO: these should be controllable via zk_vm* vars
+- name: Start vm
+  community.libvirt.virt:
+    name: "{{ vm.name }}"
+    state: running
+    autostart: true

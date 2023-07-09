@@ -1,0 +1,6 @@
+---
+# TODO:
+# host kvm_host
+# vars: vm, vm_virsh_dumpxml
+
+# similar to prune_dangling_networks

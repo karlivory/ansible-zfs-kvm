@@ -1,0 +1,6 @@
+<interface type="{{ network.nic_type }}">
+  <source {{ network.nic_type }}="{{ network.nic_source }}"/>
+  <model type="virtio"/>
+  <address type="pci" domain="0x0000" bus="{{ network.nic_bus }}" slot="0x00" function="0x0"/>
+</interface>
+

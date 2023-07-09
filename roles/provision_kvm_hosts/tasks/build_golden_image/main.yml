@@ -1,0 +1,17 @@
+---
+# host: kvm_host
+# vars: image, zk_kvm
+
+- name: Ensure image directory exists in golden_image dir
+  file:
+    path: "{{ images_dir }}/{{ image.name }}"
+    state: directory
+
+- block:
+    - name: build golden image
+      import_tasks: "./{{ image.name }}/main.yml"
+  rescue:
+    - name: Delete intermediate image on failure
+      file:
+        path: "{{ intermediate_image_path }}"
+        state: absent

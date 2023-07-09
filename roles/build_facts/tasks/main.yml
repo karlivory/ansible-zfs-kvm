@@ -1,0 +1,82 @@
+---
+- name: Build vm config
+  karlivory.zk.build_vm_config:
+    zk_vm_name: "{{ zk_vm_name }}"
+    zk_vm_disks: "{{ zk_vm_disks }}"
+    zk_vm_boot_disk_dev: "{{ zk_vm_boot_disk_dev }}"
+    zk_vm_root_keys: "{{ zk_vm_root_keys }}"
+    zk_vm_image: "{{ zk_vm_image }}"
+    zk_vm_networks: "{{ zk_vm_networks }}"
+    zk_vm_memory_mb: "{{ zk_vm_memory_mb }}"
+    zk_vm_vcpus: "{{ zk_vm_vcpus }}"
+    zk_vm_qemu_machine_type: "{{ zk_vm_qemu_machine_type }}"
+    zk_vm_prune_dangling_disks: "{{ zk_vm_prune_dangling_disks }}"
+    zk_vm_prune_dangling_networks: "{{ zk_vm_prune_dangling_networks }}"
+    zk_vm_users: "{{ zk_vm_users }}"
+  delegate_to: localhost
+  connection: local
+  when:
+    - inventory_hostname in groups['zk_vms']
+  register: build_vm_config
+
+# zk_vm_kvm_hosts is either a single host or a host group, so we convert it to
+# zk_kvm_host_list which is always in the format [host1, host2, ...]
+- set_fact:
+    zk_kvm_host_list: "{{ groups[zk_vm_kvm_hosts] | default([zk_vm_kvm_hosts]) }}"
+  delegate_to: localhost
+  connection: local
+  when:
+    - inventory_hostname in groups['zk_vms']
+
+- set_fact:
+    zk_kvm_vms: []
+  delegate_to: localhost
+  connection: local
+- set_fact:
+    zk_kvm_vms: "{{ zk_kvm_vms + [hostvars[item].build_vm_config.output] }}"
+  delegate_to: localhost
+  connection: local
+  loop: "{{ groups['zk_vms'] }}"
+  when:
+    - inventory_hostname in hostvars[item].zk_kvm_host_list
+
+- karlivory.zk.build_kvm_config:
+    ansible_host: "{{ ansible_host }}"
+    zk_kvm_vms: "{{ zk_kvm_vms }}"
+    zk_kvm_images: "{{ zk_kvm_images }}"
+    zk_kvm_zvol_parent: "{{ zk_kvm_zvol_parent }}"
+    zk_kvm_data_dir: "{{ zk_kvm_data_dir }}"
+    zk_kvm_memballoon_mem_limit_mb: "{{ zk_kvm_memballoon_mem_limit_mb }}"
+    zk_kvm_networks: "{{ zk_kvm_networks }}"
+  delegate_to: localhost
+  connection: local
+  when:
+    - inventory_hostname in groups['zk_kvm_hosts']
+  register: build_zk_kvm
+
+- set_fact:
+    zk_kvm: "{{ build_zk_kvm.output }}"
+  delegate_to: localhost
+  connection: local
+  when:
+    - inventory_hostname in groups['zk_kvm_hosts']
+
+# should zk be a list instead?
+- set_fact:
+    zk: "{{ zk | default({}) | combine({ item: hostvars[item].zk_kvm })}}"
+  delegate_to: localhost
+  connection: local
+  loop: "{{ groups['zk_kvm_hosts'] }}"
+  run_once: true
+
+- karlivory.zk.validate_kvm_config:
+    to_validate: "{{ zk_kvm }}"
+  delegate_to: localhost
+  connection: local
+  when:
+    - inventory_hostname in groups['zk_kvm_hosts']
+
+# - debug:
+#     var: zk
+#   run_once: true
+# - fail:

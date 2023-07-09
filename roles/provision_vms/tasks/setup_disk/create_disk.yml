@@ -1,0 +1,11 @@
+---
+# host: kvm_host
+# vars: vm, zk_kvm, disk, zfs_volume
+
+- name: Create zfs volume for disk
+  community.general.zfs:
+    name: "{{ zfs_volume }}"
+    state: present
+    extra_zfs_properties:
+      volsize: "{{ disk.size }}"
+      volblocksize: "{{ disk.zfs.volblocksize | default('128k') }}"

@@ -1,0 +1,69 @@
+---
+# host: kvm_host
+# vars: vm, network
+
+- name: Update users
+  when: vm.users | length > 0
+  karlivory.zk.qemu_guest_run_cmd:
+    domain: "{{ vm.name }}"
+    command: |
+      #!/bin/bash
+      {% for user in vm.users %}
+      username="{{ user.name }}"
+      groups="{{ user.groups | join(' ') }}"
+      ssh_keys="{{ user.ssh_keys | join('\n') }}"
+
+      if ! id -u "${username}" &> /dev/null; then
+        useradd -m "${username}" -s "/bin/bash"
+        echo "CHANGED: useradd"
+      fi
+
+      {% if user.passwordless_sudo %}
+      if [ ! -f "/etc/sudoers.d/nopw-$username" ] || ! grep -q "$username ALL=(ALL) NOPASSWD:ALL" "/etc/sudoers.d/nopw-$username"; then
+          echo "$username ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/nopw-$username"
+          chmod 0440 "/etc/sudoers.d/nopw-$username"
+          echo "CHANGED: passwordless_sudo"
+      fi
+      {% else %}
+      if [ -f "/etc/sudoers.d/nopw-${username}" ]; then
+          rm "/etc/sudoers.d/nopw-${username}"
+          echo "CHANGED: passwordless_sudo"
+      fi
+      {% endif %}
+
+      for group in ${groups}; do
+        if ! id -nG "${username}" | grep -qw "${group}"; then
+          usermod -aG "${group}" "${username}"
+          echo "CHANGED: group"
+        fi
+      done
+
+      {% if user.password %}
+      echo "${username}:{{ user.password }}" | chpasswd
+      {% endif %}
+
+      mkdir -p "/home/${username}/.ssh"
+      AUTH_KEYS_FILE="/home/${username}/.ssh/authorized_keys"
+
+      if [ -f "${AUTH_KEYS_FILE}" ]; then
+        OLD_SHA1SUM=$(sha1sum ${AUTH_KEYS_FILE} | cut -d " " -f1)
+      else
+        OLD_SHA1SUM=""
+      fi
+
+      echo -e "${ssh_keys}" > "${AUTH_KEYS_FILE}"
+      chmod 600 "${AUTH_KEYS_FILE}"
+      chown -R "${username}:${username}" "/home/${username}/.ssh"
+
+      NEW_SHA1SUM=$(sha1sum ${AUTH_KEYS_FILE} | cut -d " " -f1)
+
+      if [ "${OLD_SHA1SUM}" != "${NEW_SHA1SUM}" ]; then
+        echo "CHANGED: ssh_keys"
+      fi
+      {% endfor %}
+    timeout: 20
+    poll: 0.1
+  register: run_cmd
+  changed_when:
+    - "'CHANGED' in run_cmd.output.stdout | default('')"
+

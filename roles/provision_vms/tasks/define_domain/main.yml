@@ -1,0 +1,56 @@
+---
+# host: kvm_host
+# vars: vm, zk_kvm
+
+- set_fact:
+    golden_image_path: "{{ zk_kvm.data_dir }}/golden_images/{{ vm.image }}/image.qcow2"
+    max_memory_mb: "{{ zk_kvm.memballoon_mem_limit_mb }}"
+- set_fact:
+    intermediate_image_path: "{{ vm_tmp_dir }}/vm.qcow2"
+
+- block:
+    - set_fact:
+        boot_disk: "{{ vm.disks[0] }}"
+        boot_disk_zfs_volume: "{{ zk_kvm.zvol_parent }}/{{ vm.disks[0].name }}"
+
+    - set_fact:
+        volume_exists: "{{ boot_disk_zfs_volume in (zk_info.zvol_parent_volumes | map(attribute='name') | list) }}"
+
+    - assert:
+        that: not volume_exists
+        fail_msg: "Boot disk zfs volume {{ boot_disk_zfs_volume }} for vm.name == {{ vm.name }} already exists!"
+
+    - name: Copy golden image to temporary image
+      copy:
+        remote_src: true
+        src: "{{ golden_image_path }}"
+        dest: "{{ intermediate_image_path }}"
+
+    # TEMPORARY: for debugging
+    # - name: virt-customize add root pw (TEMP)
+    #   command: |
+    #     virt-customize -a {{ intermediate_image_path }} \
+    #     --root-password password:123
+
+    - name: Create zfs volume for vm boot disk
+      include_tasks: ../setup_disk/create_disk.yml
+      vars:
+        disk: "{{ vm.disks | selectattr('dev', 'equalto', vm.boot_disk_dev) | first }}"
+        zfs_volume: "{{ boot_disk_zfs_volume }}"
+
+    - name: qemu-img convert temporary image to raw zvol # params tuned for fast copying
+      shell: qemu-img convert -O raw -t none -T none -W "{{ intermediate_image_path }}" "/dev/zvol/{{ boot_disk_zfs_volume }}"
+
+    - name: Create domain libvirt xml template
+      template:
+        src: template.xml.j2
+        dest: "{{ vm_tmp_dir }}/vm.xml"
+
+    - name: virsh define domain from libvirt xml template
+      shell: virsh define "{{ vm_tmp_dir }}/vm.xml"
+
+  always:
+    - name: Clean up vm intermediate image
+      file:
+        path: "{{ intermediate_image_path }}"
+        state: absent
