@@ -138,7 +138,6 @@ class ZkVM:
     zk_vm_name: str
     zk_vm_disks: List[Disk]
     zk_vm_boot_disk_dev: str
-    zk_vm_root_keys: List[str]
     zk_vm_image: str
     zk_vm_networks: List[ZkVMNetwork]
     zk_vm_memory_mb: int
@@ -153,7 +152,6 @@ class ZkVM:
 class VM:
     name: str
     disks: List[Disk]
-    root_keys: List[str]
     boot_disk_dev: str
     image: str
     zk_networks: List[ZkVMNetwork]
@@ -194,7 +192,6 @@ class VM:
             name=vm.zk_vm_name,
             disks=vm.zk_vm_disks,
             boot_disk_dev=vm.zk_vm_boot_disk_dev,
-            root_keys=vm.zk_vm_root_keys,
             image=vm.zk_vm_image,
             zk_networks=vm.zk_vm_networks,
             networks=[],

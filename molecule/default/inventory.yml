@@ -3,19 +3,16 @@ all:
   vars:
     ansible_user: root
     ansible_connection: ssh
-    zk_kvm_limit_min_root_size: 10G
     zk_kvm_memballoon_mem_limit_mb: 8000
     zk_kvm_data_dir: /zk-data
     zk_kvm_zvol_parent: zroot/zk
-    zk_vm_root_keys:
-      - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDfYcHdLQR7LEBaVHlmg2sLJOmcn0QuADsKg3Zz83CXT9v/TmaSv7zV27UcMueDQJW2hFLmrG3xfZSbNlacRSEeium6s83DpIgz8JliFnVm0WLsmebjIB9UlSQz14U04Xp2uuAI6awwPS5e/xBKDckvFUnhloHiQIE2cs2jrdkEDlJ7NFhA25Jp2040Y/Bld4+pjsP9lshEzGS0eJLt9W5+ESv7cO4RbXy8w+6yFD/r3/lxhHq/xs5eE5J0vFLlQNPVtST/kpMWvylIGVKdQWQBFu01FRPT7j6NPxOAPayldrfMiG8Z16Atga6sbBIUC6OEGmctN++zKWKK/KmUFmiNSJkPV8lSx+CY84wGGaqT72ZpqlscdAJe/G31RE6uzuG1AxbuQqr/xzTOSuUfLsj1FZrKVvx7TVJR4iNkrQQzyEPSuRzRJ9a2qKzBzSnqgUZ0xmbr140PpSk1D1DRISGYIrun165Vzqu6XgUMaFQKTpdPMNu1GAM+8UruQf+1NdE= karl"
     zk_vm_users:
       - name: root
         password: 1234
         ssh_keys:
           - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDfYcHdLQR7LEBaVHlmg2sLJOmcn0QuADsKg3Zz83CXT9v/TmaSv7zV27UcMueDQJW2hFLmrG3xfZSbNlacRSEeium6s83DpIgz8JliFnVm0WLsmebjIB9UlSQz14U04Xp2uuAI6awwPS5e/xBKDckvFUnhloHiQIE2cs2jrdkEDlJ7NFhA25Jp2040Y/Bld4+pjsP9lshEzGS0eJLt9W5+ESv7cO4RbXy8w+6yFD/r3/lxhHq/xs5eE5J0vFLlQNPVtST/kpMWvylIGVKdQWQBFu01FRPT7j6NPxOAPayldrfMiG8Z16Atga6sbBIUC6OEGmctN++zKWKK/KmUFmiNSJkPV8lSx+CY84wGGaqT72ZpqlscdAJe/G31RE6uzuG1AxbuQqr/xzTOSuUfLsj1FZrKVvx7TVJR4iNkrQQzyEPSuRzRJ9a2qKzBzSnqgUZ0xmbr140PpSk1D1DRISGYIrun165Vzqu6XgUMaFQKTpdPMNu1GAM+8UruQf+1NdE= karl"
       - name: foobar
-        groups: [sudo, foobar, blabla]
+        groups: [sudo, foobar]
         password: foobar2
         passwordless_sudo: true
         ssh_keys:
@@ -29,7 +26,7 @@ all:
           zk_vm_memory_mb: 3000
           zk_vm_kvm_hosts: kvm1
           zk_vm_disks:
-            - name: testvm1-root
+            - name: "{{ zk_vm_name }}-root"
               dev: vda
               size: 10G
           zk_vm_networks:

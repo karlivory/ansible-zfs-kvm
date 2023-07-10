@@ -42,8 +42,13 @@
       echo "${username}:{{ user.password }}" | chpasswd
       {% endif %}
 
-      mkdir -p "/home/${username}/.ssh"
-      AUTH_KEYS_FILE="/home/${username}/.ssh/authorized_keys"
+      USER_SSH_DIR="$(getent passwd "${username}" | cut -d: -f6)/.ssh"
+      mkdir -p "$USER_SSH_DIR"
+      AUTH_KEYS_FILE="$USER_SSH_DIR/authorized_keys"
+
+      echo "--------------------------"
+      echo $AUTH_KEYS_FILE
+      echo $(cat $AUTH_KEYS_FILE)
 
       if [ -f "${AUTH_KEYS_FILE}" ]; then
         OLD_SHA1SUM=$(sha1sum ${AUTH_KEYS_FILE} | cut -d " " -f1)
@@ -53,7 +58,7 @@
 
       echo -e "${ssh_keys}" > "${AUTH_KEYS_FILE}"
       chmod 600 "${AUTH_KEYS_FILE}"
-      chown -R "${username}:${username}" "/home/${username}/.ssh"
+      chown -R "${username}:${username}" "$USER_SSH_DIR"
 
       NEW_SHA1SUM=$(sha1sum ${AUTH_KEYS_FILE} | cut -d " " -f1)
 

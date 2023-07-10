@@ -5,10 +5,6 @@
 - set_fact:
     vm_tmp_dir: "{{ zk_kvm.data_dir }}/tmp/{{ vm.name }}"
 
-# TEMP!
-- include_tasks: ./setup_users.yml
-- fail:
-
 - name: Get domain xml
   shell: virsh dumpxml "{{ vm.name }}"
   register: vm_virsh_dumpxml
@@ -23,6 +19,8 @@
   loop_control:
     loop_var: disk
 
+- include_tasks: ./setup_users.yml
+
 - when: vm.prune_dangling_networks
   include_tasks: ./prune_dangling_networks.yml
 
@@ -30,8 +28,6 @@
   loop: "{{ vm.networks }}"
   loop_control:
     loop_var: network
-
-- include_tasks: ./setup_users.yml
 
 ############################ memory ###################################
 - set_fact:
