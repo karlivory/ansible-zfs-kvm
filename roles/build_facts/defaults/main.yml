@@ -8,7 +8,7 @@ zk_kvm_images:
     url: "https://cdimage.debian.org/images/cloud/bullseye/daily/latest/debian-11-generic-amd64-daily.qcow2"
     checksum: "sha512:https://cdimage.debian.org/images/cloud/bullseye/daily/latest/SHA512SUMS"
     pre_firstboot_uninstall_packages: cloud-init
-    pre_firstboot_install_packages: netplan.io,qemu-guest-agent
+    pre_firstboot_install_packages: netplan.io,qemu-guest-agent,ncurses-term
     firstboot_script: |
       #!/bin/bash
       DEBIAN_FRONTEND=noninteractive dpkg-reconfigure openssh-server
