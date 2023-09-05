@@ -32,14 +32,19 @@
 
 - name: Set vm hostname
   become: true
+  when: vm.hostname | length > 0
   karlivory.zk.qemu_guest_run_cmd:
     domain: "{{ vm.name }}"
     command: |
       #!/bin/bash
-      hostnamectl set-hostname "{{ vm.hostname }}"
+      if [[ "$(hostname)" != "{{ vm.hostname }}" ]]; then
+        hostnamectl set-hostname "{{ vm.hostname }}"
+        echo "HOSTNAME_CHANGED"
+      fi
     timeout: 10
     poll: 0.1
-  when: vm.hostname | length > 0
+  register: hostname_result
+  changed_when: "'HOSTNAME_CHANGED' in hostname_result.output.stdout"
 
 ############################ memory ###################################
 - set_fact:
