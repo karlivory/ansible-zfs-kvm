@@ -1,4 +1,6 @@
 ---
+# VM hostname; if zk_vm_hostname == "", hostname will remain unchanged
+zk_vm_hostname: ""
 zk_vm_networks: []
 zk_vm_disks: []
 zk_vm_users: []

@@ -30,6 +30,17 @@
   loop_control:
     loop_var: network
 
+- name: Set vm hostname
+  become: true
+  karlivory.zk.qemu_guest_run_cmd:
+    domain: "{{ vm.name }}"
+    command: |
+      #!/bin/bash
+      hostnamectl set-hostname "{{ vm.hostname }}"
+    timeout: 10
+    poll: 0.1
+  when: vm.hostname | length > 0
+
 ############################ memory ###################################
 - set_fact:
     vm_current_memory_in_mb: "{{ (vm_virsh_dumpxml.stdout | regex_search('.*currentMemory.*KiB.*>(.*)</.*currentMemory>.*', '\\1') | first | int ) / 1024 }}"

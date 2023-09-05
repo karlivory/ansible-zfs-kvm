@@ -2,6 +2,7 @@
 - name: Build vm config
   karlivory.zk.build_vm_config:
     zk_vm_name: "{{ zk_vm_name }}"
+    zk_vm_hostname: "{{ zk_vm_hostname }}"
     zk_vm_disks: "{{ zk_vm_disks }}"
     zk_vm_boot_disk_dev: "{{ zk_vm_boot_disk_dev }}"
     zk_vm_image: "{{ zk_vm_image }}"

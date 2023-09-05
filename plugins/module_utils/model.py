@@ -136,6 +136,7 @@ class ZkVMUser:
 @dataclass
 class ZkVM:
     zk_vm_name: str
+    zk_vm_hostname: str
     zk_vm_disks: List[Disk]
     zk_vm_boot_disk_dev: str
     zk_vm_image: str
@@ -151,6 +152,7 @@ class ZkVM:
 @dataclass
 class VM:
     name: str
+    hostname: str
     disks: List[Disk]
     boot_disk_dev: str
     image: str
@@ -190,6 +192,7 @@ class VM:
             )
         return VM(
             name=vm.zk_vm_name,
+            hostname=vm.zk_vm_hostname,
             disks=vm.zk_vm_disks,
             boot_disk_dev=vm.zk_vm_boot_disk_dev,
             image=vm.zk_vm_image,
