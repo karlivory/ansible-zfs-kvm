@@ -2,6 +2,7 @@
 # vars: kvm_host, image
 
 - name: "(build golden_image) Download base image to repository"
+  become: true
   get_url:
     url: "{{ image.url }}"
     dest: "{{ base_image_download_path }}"
@@ -26,6 +27,7 @@
 ## Basically a series of tests that try to set build_image=true
 
 - name: (build golden_image) Check whether golden_image and metadata.json exist
+  become: true
   stat:
     path: "{{ item }}"
     get_attributes: false
@@ -41,6 +43,7 @@
     build_image: "{{ dl_img.changed or (not files_stat.results[0].stat.exists) or (not files_stat.results[1].stat.exists) }}"
 
 - name: (build golden_image) metadata.json exists, therefore read its content into a var
+  become: true
   when: not build_image
   slurp:
     src: "{{ metadata_json_path }}"
@@ -65,10 +68,12 @@
 ## Build image, by first copying and modifying an intermediate qcow2 and then moving the result to the final golden_image path
 
 - name: "(build golden_image) qemu-img convert to intermediate qcow2 image"
+  become: true
   when: build_image
   shell: "qemu-img convert -O qcow2 \"{{ base_image_download_path }}\" \"{{ intermediate_image_path }}\""
 
 - name: "(build golden_image) Install pre_firstboot_install_packages, uninstall pre_firstboot_uninstall_packages"
+  become: true
   when: build_image
   command: |
     virt-customize -a {{ intermediate_image_path }} \
@@ -76,12 +81,14 @@
     --install "{{ image.pre_firstboot_install_packages }}"
 
 - name: "(build golden_image) Copy over firstboot_script.sh"
+  become: true
   when: build_image
   copy:
     content: "{{ image.firstboot_script }}"
     dest: "{{ tmp_dir }}/firstboot_script.sh"
     
 - name: "(build golden_image) virt-customize: truncate /etc/machine-id and inject firstboot_script.sh to image"
+  become: true
   when: build_image
   command: |
     virt-customize -a {{ intermediate_image_path }} \
@@ -89,6 +96,7 @@
     --firstboot {{ tmp_dir }}/firstboot_script.sh
 
 - name: (build golden_image) Move intermediate_image to golden_image
+  become: true
   when: build_image
   command: "mv {{ intermediate_image_path }} {{ golden_image_path }}"
   register: mv_result
@@ -96,6 +104,7 @@
   check_mode: no
   
 - name: (build golden_image) Write metadata to metadata.json
+  become: true
   when: build_image
   copy:
     content: "{{ metadata | to_nice_json }}"

@@ -19,12 +19,14 @@
   when: not vm_has_nic
 
 - name: copy over network device file (*-nic.xml)
+  become: true
   when: not vm_has_nic
   template:
     src: "./define_domain/nic.xml.j2"
     dest: "{{ tmp_nic_xml_path }}"
 
 - name: attach nic to vm
+  become: true
   when: not vm_has_nic
   shell: "virsh attach-device {{ vm.name }} {{ tmp_nic_xml_path }} --persistent"
 
@@ -36,6 +38,7 @@
   register: netplan_yaml_print
 
 - name: Update vm netplan
+  become: true
   karlivory.zk.qemu_guest_run_cmd:
     domain: "{{ vm.name }}"
     command: |

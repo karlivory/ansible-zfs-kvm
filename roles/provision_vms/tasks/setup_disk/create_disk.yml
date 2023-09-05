@@ -3,6 +3,7 @@
 # vars: vm, zk_kvm, disk, zfs_volume
 
 - name: Create zfs volume for disk
+  become: true
   community.general.zfs:
     name: "{{ zfs_volume }}"
     state: present

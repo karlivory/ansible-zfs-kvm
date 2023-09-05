@@ -7,6 +7,7 @@
     vm_tmp_dir: "{{ zk_kvm.data_dir }}/tmp/{{ vm.name }}"
 
 - name: Ensure vm tmp_dir exists
+  become: true
   file:
     path: "{{ vm_tmp_dir }}"
     state: directory
@@ -17,6 +18,7 @@
 
 # TODO: these should be controllable via zk_vm* vars
 - name: Start vm
+  become: true
   community.libvirt.virt:
     name: "{{ vm.name }}"
     state: running

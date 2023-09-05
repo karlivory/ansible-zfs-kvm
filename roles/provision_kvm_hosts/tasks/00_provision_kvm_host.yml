@@ -3,6 +3,7 @@
 # vars: zk_kvm
 
 - name: Install some packages
+  become: true
   apt:
     pkg:
       - bridge-utils
@@ -26,6 +27,7 @@
 #       - python3-libvirt
 
 - name: Ensure zk_kvm_zvol_parent zfs dataset exists
+  become: true
   community.general.zfs:
     name: "{{ zk_kvm.zvol_parent }}"
     state: present
@@ -39,6 +41,7 @@
     tmp_dir: "{{ zk_kvm.data_dir }}/tmp"
 
 - name: Ensure repository, golden_images and tmp directories exist under data_dir/
+  become: true
   file:
     path: "{{ item }}"
     state: directory

@@ -2,12 +2,14 @@
 # vars: kvm_host
 
 - name: Obtain list of libvirt vms for kvm_host
+  become: true
   community.libvirt.virt:
     command: list_vms
   register: virt_list_vms
   changed_when: false
 
 - name: Get info about zfs volume
+  become: true
   community.general.zfs_facts:
     name: "{{ zk_kvm.zvol_parent }}"
     depth: 1

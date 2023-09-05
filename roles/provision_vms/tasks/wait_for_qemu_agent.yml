@@ -3,6 +3,7 @@
 # vars: vm
 
 - name: Try to ping qemu-guest-agent
+  become: true
   shell: virsh qemu-agent-command --domain "{{ vm.name }}" '{"execute":"guest-ping"}'
   changed_when: false
   register: qemu_guest_ping

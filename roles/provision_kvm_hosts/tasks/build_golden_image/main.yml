@@ -3,15 +3,18 @@
 # vars: image, zk_kvm
 
 - name: Ensure image directory exists in golden_image dir
+  become: true
   file:
     path: "{{ images_dir }}/{{ image.name }}"
     state: directory
 
 - block:
     - name: build golden image
+      become: true
       import_tasks: "./{{ image.name }}/main.yml"
   rescue:
     - name: Delete intermediate image on failure
+      become: true
       file:
         path: "{{ intermediate_image_path }}"
         state: absent

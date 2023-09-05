@@ -33,11 +33,13 @@
   when: not vm_has_disk
 
 - name: Make disk libvirt xml template
+  become: true
   when: not vm_has_disk
   template:
     src: "./disk.xml.j2"
     dest: "{{ tmp_disk_xml_path }}"
 
 - name: Attach disk to domain
+  become: true
   when: not vm_has_disk
   shell: virsh attach-device "{{ vm.name }}" "{{ tmp_disk_xml_path }}" --persistent

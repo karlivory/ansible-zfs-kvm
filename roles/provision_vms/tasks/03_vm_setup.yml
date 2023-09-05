@@ -6,6 +6,7 @@
     vm_tmp_dir: "{{ zk_kvm.data_dir }}/tmp/{{ vm.name }}"
 
 - name: Get domain xml
+  become: true
   shell: virsh dumpxml "{{ vm.name }}"
   register: vm_virsh_dumpxml
   changed_when: false
@@ -38,6 +39,7 @@
     fail_msg: "Something went wrong when trying to read currentMemory of {{ vm.name }}, value is: {{ vm_current_memory_in_mb }}"
 
 - name: Update vm memory
+  become: true
   when: (vm_current_memory_in_mb | int) != (vm.memory_mb | int)
   shell: virsh setmem --domain "{{ vm.name }}" "{{ vm.memory_mb }}M" --live --config
 
@@ -50,5 +52,6 @@
     fail_msg: "Something went wrong when trying to read vcpu count of {{ vm.name }}, value is: {{ vm_current_vcpus }}"
 
 - name: Update vm vcpus (needs restart)
+  become: true
   when: (vm_current_vcpus | int) != (vm.vcpus | int)
   shell: virsh setvcpus --domain "{{ vm.name }}" "{{ vm.vcpus }}" --maximum --config && virsh setvcpus --domain "{{ vm.name }}" "{{ vm.vcpus }}" --config
