@@ -6,6 +6,21 @@ zk_vm_disks: []
 zk_vm_users: []
 zk_kvm_networks: []
 zk_kvm_images:
+  - name: debian12
+    url: "https://cdimage.debian.org/images/cloud/bookworm/daily/latest/debian-12-generic-amd64-daily.qcow2"
+    checksum: "sha512:https://cdimage.debian.org/images/cloud/bookworm/daily/latest/SHA512SUMS"
+    pre_firstboot_uninstall_packages: cloud-init
+    pre_firstboot_install_packages: netplan.io,qemu-guest-agent,ncurses-term
+    firstboot_script: |
+      #!/bin/bash
+      DEBIAN_FRONTEND=noninteractive dpkg-reconfigure openssh-server
+      /etc/init.d/ssh restart
+      rm -rf /etc/network/*
+      echo "allow-hotplug *" > /etc/network/interfaces
+      netplan generate
+      systemctl enable systemd-resolved.service && systemctl restart systemd-resolved.service
+      systemctl enable qemu-guest-agent && systemctl start qemu-guest-agent
+      growpart /dev/vda 1 && resize2fs /dev/vda1
   - name: debian11
     url: "https://cdimage.debian.org/images/cloud/bullseye/daily/latest/debian-11-generic-amd64-daily.qcow2"
     checksum: "sha512:https://cdimage.debian.org/images/cloud/bullseye/daily/latest/SHA512SUMS"
