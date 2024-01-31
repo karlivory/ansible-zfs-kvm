@@ -6,6 +6,7 @@ all:
     zk_kvm_memballoon_mem_limit_mb: 8000
     zk_kvm_data_dir: /zk-data
     zk_kvm_zvol_parent: zroot/zk
+    zk_kvm_images: []
     zk_vm_users:
       - name: root
         password: 1234
