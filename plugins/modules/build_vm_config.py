@@ -1,11 +1,10 @@
 #!/usr/bin/python
 from dataclasses import asdict
 
-from ansible_collections.karlivory.zk.plugins.module_utils.model import VM, ZkVM
+from ansible_collections.karlivory.zk.plugins.module_utils.model import (VM,
+                                                                         ZkVM)
 from ansible_collections.karlivory.zk.plugins.module_utils.utils import (
-    ModuleResult,
-    Utils,
-)
+    ModuleResult, Utils)
 
 
 def build_vm_config(args: ZkVM) -> ModuleResult:

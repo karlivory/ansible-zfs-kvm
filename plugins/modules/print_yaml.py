@@ -4,9 +4,7 @@ from typing import Any
 
 import yaml
 from ansible_collections.karlivory.zk.plugins.module_utils.utils import (
-    ModuleResult,
-    Utils,
-)
+    ModuleResult, Utils)
 
 
 # https://github.com/yaml/pyyaml/issues/234#issuecomment-786026671

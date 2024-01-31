@@ -156,7 +156,7 @@ class VM:
     disks: List[Disk]
     boot_disk_dev: str
     image: str
-    zk_networks: List[ZkVMNetwork]
+    zk_networks: List[ZkVMNetwork]  # TODO can I get rid of this?
     networks: List[VMNetwork]
     memory_mb: int
     vcpus: int
@@ -220,10 +220,8 @@ class ZkKVMHost:
 
 @dataclass
 class KVMHost:
-    ansible_host: str  # validate that this is unique among zk
+    ansible_host: str
     images: List[Images]
-    # memballoon_mem_limit_mb: int
-    # vms: List[VM] = field(default_factory=list)
     data_dir: str
     zvol_parent: str
     vms: List[VM]

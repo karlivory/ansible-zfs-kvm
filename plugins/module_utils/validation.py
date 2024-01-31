@@ -18,9 +18,9 @@ class ValidationResult:
     validation_errors: List[ValidationError] = field(default_factory=list)
 
 
-@dataclass
-class ModuleArgs:
-    to_validate: KVMHost
+# @dataclass
+# class ModuleArgs:
+#     to_validate: KVMHost
 
 
 class KVMHostValidator:
