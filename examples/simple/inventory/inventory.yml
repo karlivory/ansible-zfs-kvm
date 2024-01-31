@@ -1,0 +1,57 @@
+---
+all:
+  vars:
+    ansible_user: root
+    ansible_connection: ssh
+    zk_kvm_memballoon_mem_limit_mb: 8000
+    zk_kvm_data_dir: /zk-data
+    zk_kvm_zvol_parent: zroot/zk
+    zk_vm_users:
+      - name: root
+        password: 1234
+        ssh_keys: [ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDfYcHdLQR7LEBaVHlmg2sLJOmcn0QuADsKg3Zz83CXT9v/TmaSv7zV27UcMueDQJW2hFLmrG3xfZSbNlacRSEeium6s83DpIgz8JliFnVm0WLsmebjIB9UlSQz14U04Xp2uuAI6awwPS5e/xBKDckvFUnhloHiQIE2cs2jrdkEDlJ7NFhA25Jp2040Y/Bld4+pjsP9lshEzGS0eJLt9W5+ESv7cO4RbXy8w+6yFD/r3/lxhHq/xs5eE5J0vFLlQNPVtST/kpMWvylIGVKdQWQBFu01FRPT7j6NPxOAPayldrfMiG8Z16Atga6sbBIUC6OEGmctN++zKWKK/KmUFmiNSJkPV8lSx+CY84wGGaqT72ZpqlscdAJe/G31RE6uzuG1AxbuQqr/xzTOSuUfLsj1FZrKVvx7TVJR4iNkrQQzyEPSuRzRJ9a2qKzBzSnqgUZ0xmbr140PpSk1D1DRISGYIrun165Vzqu6XgUMaFQKTpdPMNu1GAM+8UruQf+1NdE= cardno:10 695 947 ]
+      - name: foobar
+        groups: [sudo, foobar]
+        password: foobar2
+        passwordless_sudo: true
+        ssh_keys: []
+  children:
+    zk_vms:
+      hosts:
+        testvm1:
+          ansible_host: 192.168.122.100
+          zk_vm_name: testvm1
+          zk_vm_kvm_hosts: testkvm
+          zk_vm_image: debian11
+          zk_vm_memory_mb: 3000
+          zk_vm_vcpus: 1
+          zk_vm_disks:
+            - name: "{{ zk_vm_name }}-root"
+              dev: vda
+              size: 10G
+          zk_vm_networks:
+            - name: virbr0
+              netplan:
+                addresses: [192.168.122.100/24]
+    zk_kvm_hosts:
+      hosts:
+        testkvm: 
+          ansible_host: localhost
+          zk_kvm_networks:
+            - name: virbr0
+              subnet: 192.168.122.0/24
+              nic_type: bridge
+              nic_source: virbr0
+              nic_device_model: virtio
+              nic_bus: 10
+              netplan:
+                dhcp4: false
+                dhcp6: false
+                routes:
+                  - to: 0.0.0.0/0
+                    via: 192.168.122.1
+                nameservers:
+                  addresses:
+                    - 1.1.1.1
+
+
