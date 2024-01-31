@@ -1,6 +1,5 @@
 ansible
 dacite
-molecule
 pylint
 pytest
 pytest-mock

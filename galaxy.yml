@@ -23,7 +23,6 @@ build_ignore:
   - __pycache__
   - docs
   - examples
-  - molecule
   - pyrightconfig.json
   - run-tests.sh
   - tests
