@@ -14,27 +14,6 @@ class Images:
     pre_firstboot_install_packages: str
 
 
-# @dataclass
-# class NetplanNameservers:
-#     search: Optional[List[str]]
-#     addresses: List[str]
-
-
-# @dataclass
-# class NetplanRoute:
-#     to: Optional[str]
-#     via: Optional[str]
-
-
-# @dataclass
-# class Netplan:
-#     dhcp4: Optional[bool]
-#     dhcp6: Optional[bool]
-#     routes: Optional[List[NetplanRoute]]
-#     addresses: Optional[List[str]]
-#     nameservers: Optional[NetplanNameservers]
-
-
 @dataclass
 class ZkVMNetwork:
     name: str
@@ -58,15 +37,6 @@ class VMNetwork:
 
 
 @dataclass
-class ZFSAutosnapPolicy:
-    frequently: Optional[int]
-    hourly: Optional[int]
-    daily: Optional[int]
-    monthly: Optional[int]
-    yearly: Optional[int]
-
-
-@dataclass
 class ZFSProperties:
     volblocksize: Optional[str]
     compression: Optional[str]
@@ -74,7 +44,6 @@ class ZFSProperties:
 
 @dataclass
 class ZFS:
-    autosnap_policy: Optional[ZFSAutosnapPolicy]
     properties: Optional[ZFSProperties]
 
 
@@ -156,7 +125,6 @@ class VM:
     disks: List[Disk]
     boot_disk_dev: str
     image: str
-    zk_networks: List[ZkVMNetwork]  # TODO can I get rid of this?
     networks: List[VMNetwork]
     memory_mb: int
     vcpus: int
@@ -196,7 +164,6 @@ class VM:
             disks=vm.zk_vm_disks,
             boot_disk_dev=vm.zk_vm_boot_disk_dev,
             image=vm.zk_vm_image,
-            zk_networks=vm.zk_vm_networks,
             networks=[],
             memory_mb=vm.zk_vm_memory_mb,
             vcpus=vm.zk_vm_vcpus,
@@ -210,7 +177,7 @@ class VM:
 @dataclass
 class ZkKVMHost:
     ansible_host: str
-    zk_kvm_vms: List[VM]
+    zk_kvm_vms: List[ZkVM]
     zk_kvm_images: List[Images]
     zk_kvm_zvol_parent: str
     zk_kvm_data_dir: str
@@ -226,16 +193,15 @@ class KVMHost:
     zvol_parent: str
     vms: List[VM]
     memballoon_mem_limit_mb: int
-    networks: List[ZkVMNetwork]
 
     @staticmethod
     def with_merged_networks(
-        vms: List[VM], kvm_networks: List[ZkVMNetwork]
+        zk_vms: List[ZkVM], kvm_networks: List[ZkVMNetwork]
     ) -> List[VM]:
         result = []
-        for vm in vms:
+        for zk_vm in zk_vms:
             new_networks = []
-            for zk_vm_network in vm.zk_networks:
+            for zk_vm_network in zk_vm.zk_vm_networks:
                 kvm_network = next(
                     (
                         kvm_network
@@ -252,28 +218,29 @@ class KVMHost:
                         netplan=None,
                     ),
                 )
+                vm_name = f"vm.name == {zk_vm.zk_vm_name}"
                 nic_bus = Utils.try_from_values(
-                    f"vm.name == {vm.name}",
+                    vm_name,
                     "vm.network.nic_bus",
                     [zk_vm_network.nic_bus, kvm_network.nic_bus],
                 )
                 nic_device_model = Utils.try_from_values(
-                    f"vm.name == {vm.name}",
+                    vm_name,
                     "vm.network.nic_device_model",
                     [zk_vm_network.nic_device_model, kvm_network.nic_device_model],
                 )
                 nic_source = Utils.try_from_values(
-                    f"vm.name == {vm.name}",
+                    vm_name,
                     "vm.network.nic_source",
                     [zk_vm_network.nic_source, kvm_network.nic_source],
                 )
                 nic_type = Utils.try_from_values(
-                    f"vm.name == {vm.name}",
+                    vm_name,
                     "vm.network.nic_type",
                     [zk_vm_network.nic_type, kvm_network.nic_type],
                 )
                 subnet = Utils.try_from_values(
-                    f"vm.name == {vm.name}",
+                    vm_name,
                     "vm.network.subnet",
                     [zk_vm_network.subnet, kvm_network.subnet, "0.0.0.0/0"],
                 )
@@ -295,6 +262,7 @@ class KVMHost:
                 )
                 new_networks.append(network)
 
+            vm: VM = VM.from_conf(zk_vm)
             vm.networks = new_networks
             result += [vm]
         return result
@@ -309,5 +277,4 @@ class KVMHost:
             data_dir=conf.zk_kvm_data_dir,
             ansible_host=conf.ansible_host,
             memballoon_mem_limit_mb=conf.zk_kvm_memballoon_mem_limit_mb,
-            networks=kvm_networks,
         )

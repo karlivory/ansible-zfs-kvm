@@ -2,13 +2,9 @@
 from dataclasses import asdict
 
 from ansible_collections.karlivory.zk.plugins.module_utils.model import (
-    KVMHost,
-    ZkKVMHost,
-)
+    KVMHost, ZkKVMHost)
 from ansible_collections.karlivory.zk.plugins.module_utils.utils import (
-    ModuleResult,
-    Utils,
-)
+    ModuleResult, Utils)
 
 
 def build_kvm_config(args: ZkKVMHost) -> ModuleResult:
