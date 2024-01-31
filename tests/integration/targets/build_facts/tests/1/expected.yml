@@ -1,0 +1,129 @@
+testkvm:
+  ansible_host: localhost
+  data_dir: /zk-data
+  images:
+    - checksum: sha512:https://cdimage.debian.org/images/cloud/bullseye/daily/latest/SHA512SUMS
+      firstboot_script: '#!/bin/bash
+
+        DEBIAN_FRONTEND=noninteractive dpkg-reconfigure openssh-server
+
+        /etc/init.d/ssh restart
+
+        rm -rf /etc/network/*
+
+        echo "allow-hotplug *" > /etc/network/interfaces
+
+        netplan generate
+
+        systemctl enable systemd-resolved.service && systemctl restart systemd-resolved.service
+
+        systemctl enable qemu-guest-agent && systemctl start qemu-guest-agent
+
+        growpart /dev/vda 1 && resize2fs /dev/vda1
+
+        '
+      name: debian11
+      pre_firstboot_install_packages: netplan.io,qemu-guest-agent,ncurses-term
+      pre_firstboot_uninstall_packages: cloud-init
+      url: https://cdimage.debian.org/images/cloud/bullseye/daily/latest/debian-11-generic-amd64-daily.qcow2
+    - checksum: sha256:https://cloud-images.ubuntu.com/jammy/current/SHA256SUMS
+      firstboot_script: '#!/bin/bash
+
+        DEBIAN_FRONTEND=noninteractive dpkg-reconfigure openssh-server
+
+        /etc/init.d/ssh restart
+
+        rm -rf /etc/network/*
+
+        echo "allow-hotplug *" > /etc/network/interfaces
+
+        netplan generate
+
+        systemctl enable systemd-resolved.service && systemctl restart systemd-resolved.service
+
+        systemctl enable qemu-guest-agent && systemctl start qemu-guest-agent
+
+        growpart /dev/vda 1 && resize2fs /dev/vda1
+
+        '
+      name: ubuntu2204
+      pre_firstboot_install_packages: netplan.io,qemu-guest-agent
+      pre_firstboot_uninstall_packages: cloud-init
+      url: https://cloud-images.ubuntu.com/daily/server/jammy/current/jammy-server-cloudimg-amd64.img
+  memballoon_mem_limit_mb: 8000
+  networks:
+    - name: virbr0
+      netplan:
+        dhcp4: false
+        dhcp6: false
+        nameservers:
+          addresses:
+            - 1.1.1.1
+        routes:
+          - to: 0.0.0.0/0
+            via: 192.168.122.1
+      nic_bus: 10
+      nic_device_model: virtio
+      nic_source: virbr0
+      nic_type: bridge
+      subnet: 192.168.122.0/24
+  vms:
+    - boot_disk_dev: vda
+      disks:
+        - dev: vda
+          name: testvm1-root
+          size: 10G
+          zfs: null
+      hostname: ''
+      image: debian11
+      memory_mb: 3000
+      name: testvm1
+      networks:
+        - name: virbr0
+          netplan:
+            network:
+              ethernets:
+                enp10s0:
+                  addresses:
+                    - 192.168.122.100/24
+                  dhcp4: false
+                  dhcp6: false
+                  nameservers:
+                    addresses:
+                      - 1.1.1.1
+                  routes:
+                    - to: 0.0.0.0/0
+                      via: 192.168.122.1
+          nic_bus: 10
+          nic_device_model: virtio
+          nic_source: virbr0
+          nic_type: bridge
+          subnet: 192.168.122.0/24
+      prune_dangling_disks: true
+      prune_dangling_networks: true
+      qemu_machine_type: pc-q35-6.2
+      users:
+        - groups: []
+          name: root
+          password: '1234'
+          passwordless_sudo: false
+          ssh_keys: []
+        - groups:
+            - sudo
+            - foobar
+          name: foobar
+          password: foobar2
+          passwordless_sudo: true
+          ssh_keys: []
+      vcpus: 1
+      zk_networks:
+        - name: virbr0
+          netplan:
+            addresses:
+              - 192.168.122.100/24
+          nic_bus: null
+          nic_device_model: null
+          nic_source: null
+          nic_type: null
+          subnet: null
+  zvol_parent: zroot/zk

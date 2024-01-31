@@ -1,0 +1,39 @@
+---
+- hosts: all
+  gather_facts: false
+  roles:
+    - karlivory.zk.build_facts
+  tasks:
+    - karlivory.zk.print_yaml:
+        data: "{{ zk }}"
+      delegate_to: localhost
+      connection: local
+      register: yaml_print
+
+    - name: Write zk variable to a tmp file
+      copy:
+        dest: "/tmp/ansible_it_build_facts_{{ test_no }}.yml"
+        content: "{{ yaml_print.output }}"
+      delegate_to: localhost
+      connection: local
+
+    - name: Compare
+      command: "diff /tmp/ansible_it_build_facts_{{ test_no }}.yml tests/{{ test_no }}/expected.yml"
+      register: diff_output
+      ignore_errors: true
+      delegate_to: localhost
+      connection: local
+
+    - name: Show diff output
+      debug:
+        var: diff_output.stdout
+      when: diff_output.rc != 0
+      delegate_to: localhost
+      connection: local
+
+    - name: Assert no difference
+      assert:
+        that: diff_output.rc == 0
+        fail_msg: "Differences found between out1.yml and expected1.yml"
+      delegate_to: localhost
+      connection: local
