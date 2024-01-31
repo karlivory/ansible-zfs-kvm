@@ -2,6 +2,30 @@ testkvm:
   ansible_host: localhost
   data_dir: /zk-data
   images:
+    - checksum: sha512:https://cdimage.debian.org/images/cloud/bookworm/daily/latest/SHA512SUMS
+      firstboot_script: '#!/bin/bash
+
+        DEBIAN_FRONTEND=noninteractive dpkg-reconfigure openssh-server
+
+        /etc/init.d/ssh restart
+
+        rm -rf /etc/network/*
+
+        echo "allow-hotplug *" > /etc/network/interfaces
+
+        netplan generate
+
+        systemctl enable systemd-resolved.service && systemctl restart systemd-resolved.service
+
+        systemctl enable qemu-guest-agent && systemctl start qemu-guest-agent
+
+        growpart /dev/vda 1 && resize2fs /dev/vda1
+
+        '
+      name: debian12
+      pre_firstboot_install_packages: netplan.io,qemu-guest-agent,ncurses-term
+      pre_firstboot_uninstall_packages: cloud-init
+      url: https://cdimage.debian.org/images/cloud/bookworm/daily/latest/debian-12-generic-amd64-daily.qcow2
     - checksum: sha512:https://cdimage.debian.org/images/cloud/bullseye/daily/latest/SHA512SUMS
       firstboot_script: '#!/bin/bash
 
