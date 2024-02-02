@@ -5,3 +5,4 @@ lxml==5.1.0
 pylint==3.0.3
 pytest==8.0.0
 pytest-forked==1.6.0
+pytest-mock==3.12.0

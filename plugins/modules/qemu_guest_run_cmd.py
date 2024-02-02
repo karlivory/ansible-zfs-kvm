@@ -1,5 +1,3 @@
-# credit: https://technekey.com/simplifying-vm-management-executing-commands-in-guest-vms-using-virsh/
-
 import base64
 import json
 import time
@@ -11,24 +9,20 @@ from ansible.module_utils.basic import AnsibleModule
 class QemuGuestRunCmd:
     @staticmethod
     def parse_stdout_stderr(raw_out):
-        try:
-            base64_out = base64.b64decode(raw_out["return"]["out-data"]).decode("UTF-8")
-        except KeyError as _:
-            base64_out = ""
-        try:
-            base64_err = base64.b64decode(raw_out["return"]["err-data"]).decode("UTF-8")
-        except KeyError as _:
-            base64_err = ""
-        return base64_out, base64_err
+        def decode_base64_data(key):
+            try:
+                return base64.b64decode(raw_out["return"].get(key, "")).decode("UTF-8")
+            except KeyError:
+                return ""
+
+        return decode_base64_data("out-data"), decode_base64_data("err-data")
 
     @staticmethod
-    def get_status(module, domain, pid):
-        # build the JSON body for PID status check
+    def get_status(module: AnsibleModule, domain: str, pid: int):
         my_cmd_json_pid = json.dumps(
             {"execute": "guest-exec-status", "arguments": {"pid": pid}}
         )
-        # Get the status of the PID
-        cmd_return_code, cmd_run_stdout, cmd_run_stderr = module.run_command(
+        rc, stdout, stderr = module.run_command(
             [
                 "virsh",
                 "-c",
@@ -40,107 +34,90 @@ class QemuGuestRunCmd:
             encoding="utf-8",
         )
 
-        if cmd_return_code != 0:
+        if rc != 0:
             module.fail_json(
-                msg={
-                    "msg": "virsh guest-exec-status failed!",
-                    "stdout": cmd_run_stdout,
-                    "stderr": cmd_run_stderr,
-                }
+                msg="virsh guest-exec-status failed", stdout=stdout, stderr=stderr
             )
 
         try:
-            result_pid_json = json.loads(cmd_run_stdout)
-            if result_pid_json["return"]["exited"]:
-                return True, result_pid_json
-        except ValueError:
+            result_pid_json = json.loads(stdout)
+            exited = result_pid_json["return"]["exited"]
+            return exited, result_pid_json
+        except json.JSONDecodeError:
             module.fail_json(
-                msg=f"Failed to parse command output as JSON in getting status. Output: {cmd_run_stdout}"
+                msg="Failed to parse JSON from guest-exec-status", stdout=stdout
             )
 
         return False, {}
 
+    # execute cmd via guest-exec, return process id (pid)
+    @staticmethod
+    def execute_command(module: AnsibleModule, domain: str, command: str):
+        guest_exec_cmd_json = json.dumps(
+            {
+                "execute": "guest-exec",
+                "arguments": {
+                    "path": "/bin/bash",
+                    "arg": ["-c", command],
+                    "capture-output": True,
+                },
+            }
+        )
+
+        rc, stdout, stderr = module.run_command(
+            [
+                "virsh",
+                "-c",
+                "qemu:///system",
+                "qemu-agent-command",
+                domain,
+                guest_exec_cmd_json,
+            ],
+            encoding="utf-8",
+        )
+        if rc != 0:
+            module.fail_json(
+                msg="virsh qemu-agent-command failed", stdout=stdout, stderr=stderr
+            )
+            return 0, True
+
+        try:
+            pid = int(json.loads(stdout)["return"]["pid"])
+            return pid, False
+        except json.JSONDecodeError:
+            module.fail_json(
+                msg="Failed to parse JSON from qemu-agent-command", stdout=stdout
+            )
+            return 0, True
+
     @staticmethod
     def run(
-        module: AnsibleModule, domain: str, command: str, timeout: int, poll: float
+        module: AnsibleModule, domain: str, command: str, timeout: float, poll: float
     ):
-        try:
-            my_cmd_json = json.dumps(
-                {
-                    "execute": "guest-exec",
-                    "arguments": {
-                        "path": "/bin/bash",
-                        "arg": ["-c", f"{command}"],
-                        "capture-output": True,
-                    },
-                }
-            )
+        pid, failed = QemuGuestRunCmd.execute_command(module, domain, command)
+        if failed:
+            return
 
-            cmd_return_code, cmd_run_stdout, cmd_run_stderr = module.run_command(
-                [
-                    "virsh",
-                    "-c",
-                    "qemu:///system",
-                    "qemu-agent-command",
-                    domain,
-                    my_cmd_json,
-                ],
-                encoding="utf-8",
-            )
-            if cmd_return_code != 0:
-                module.fail_json(
-                    msg={
-                        "msg": "virsh qemu-agent-command failed",
-                        "stdout": cmd_run_stdout,
-                        "stderr": cmd_run_stderr,
-                    },
-                )
-            try:
-                cmd_run_stdout_json = json.loads(cmd_run_stdout)
-                pid = cmd_run_stdout_json["return"]["pid"]
+        start_time = datetime.now()
 
-                cmd_exited = False
-                start_time = datetime.now()
-
-                raw_out = {}
-                while not cmd_exited:
-                    cmd_exited, raw_out = QemuGuestRunCmd.get_status(
-                        module, domain, pid
-                    )
-                    time_delta = datetime.now() - start_time
-                    if time_delta.total_seconds() >= float(timeout):
-                        module.fail_json(
-                            msg=f"virsh qemu-agent-command timed out! (timeout={timeout})"
-                        )
-                    time.sleep(poll)
-
+        while True:
+            exited, raw_out = QemuGuestRunCmd.get_status(module, domain, pid)
+            if exited:
                 stdout, stderr = QemuGuestRunCmd.parse_stdout_stderr(raw_out)
-
-                failed = False
-                rc = raw_out["return"]["exitcode"]
-                if rc:
-                    try:
-                        rc = int(rc)
-                        failed = rc != 0
-                    except:
-                        pass
-
+                rc = int(raw_out["return"].get("exitcode", 0))
                 module.exit_json(
                     changed=True,
                     output={"stdout": stdout, "stderr": stderr, "rc": rc},
-                    failed=failed,
                 )
-            except ValueError:
+                break
+
+            if (datetime.now() - start_time).total_seconds() > timeout:
                 module.fail_json(
-                    msg={
-                        "msg": "Failed to parse command stdout as JSON",
-                        "stdout": cmd_run_stdout,
-                    },
+                    msg=f"Command timed out after {timeout} seconds",
                 )
-        except Exception as e:
-            module.fail_json(
-                msg=str(e),
-            )
+                break
+
+            time.sleep(poll)
 
 
 def main():
@@ -152,12 +129,12 @@ def main():
     }
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
+    domain = module.params["domain"]  # type: ignore
+    command = module.params["command"]  # type: ignore
+    timeout = module.params["timeout"]  # type: ignore
+    poll = module.params["poll"]  # type: ignore
 
-    domain = str(module.params["domain"])
-    command = str(module.params["command"])
-    timeout = int(module.params["timeout"])
-    poll = float(module.params["poll"])
-    QemuGuestRunCmd.run(module, domain, command, timeout, poll)
+    QemuGuestRunCmd.run(module, domain, command, timeout, poll)  # type: ignore
 
 
 if __name__ == "__main__":
