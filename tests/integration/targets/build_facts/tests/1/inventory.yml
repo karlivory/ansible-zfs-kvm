@@ -1,8 +1,7 @@
 ---
 all:
   vars:
-    ansible_user: root
-    ansible_connection: ssh
+    ansible_connection: local
     zk_kvm_memballoon_mem_limit_mb: 8000
     zk_kvm_data_dir: /zk-data
     zk_kvm_zvol_parent: zroot/zk
