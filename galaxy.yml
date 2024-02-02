@@ -26,6 +26,7 @@ build_ignore:
   - pyrightconfig.json
   - renovate.json
   - run-tests.sh
+  - test-requirements.txt
   - tests
   - tools
   - venv

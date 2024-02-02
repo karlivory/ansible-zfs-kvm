@@ -1,8 +1,4 @@
 ansible
 dacite
-pylint
-pytest
-pytest-mock
-pytest-forked
 pyyaml
 lxml
