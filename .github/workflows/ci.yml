@@ -18,7 +18,7 @@ jobs:
     - name: Run unit tests
       run: |
         cd ./ansible_collections/karlivory/zk
-        chmod 777 -R .
+        # chmod 777 -R .
         # sudo apt-get update
         # sudo apt-get install virtualenv -y
         # ./run-tests.sh
