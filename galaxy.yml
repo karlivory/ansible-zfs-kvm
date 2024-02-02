@@ -24,6 +24,7 @@ build_ignore:
   - docs
   - examples
   - pyrightconfig.json
+  - renovate.json
   - run-tests.sh
   - tests
   - tools
