@@ -17,7 +17,7 @@
     type: volume
   register: zfs_facts
 
-- set_fact:
+- ansible.builtin.set_fact:
     zk_info: >
       {{
         zk_info | default({}) | combine({

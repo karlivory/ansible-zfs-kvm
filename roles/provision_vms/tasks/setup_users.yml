@@ -67,8 +67,7 @@
       fi
       {% endfor %}
     timeout: 20
-    poll: 0.1
+    poll: !!float "0.1"
   register: run_cmd
   changed_when:
     - "'CHANGED' in run_cmd.output.stdout | default('')"
-

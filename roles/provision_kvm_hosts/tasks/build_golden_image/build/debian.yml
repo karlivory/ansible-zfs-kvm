@@ -1,26 +1,26 @@
 ---
 # vars: kvm_host, image
 
-- name: "(build golden_image) Download base image to repository"
+- name: (build golden_image) Download base image to repository
   become: true
-  get_url:
+  ansible.builtin.get_url:
     url: "{{ image.url }}"
     dest: "{{ base_image_download_path }}"
     checksum: "{{ image.checksum }}"
   register: dl_img
 
-- debug:
+- ansible.builtin.debug:
     var: dl_img
 
 - name: (build golden_image) build metadata var
-  set_fact:
+  ansible.builtin.set_fact:
     metadata:
       url: "{{ image.url }}"
-      pre_firstboot_install_packages: "{{ image. pre_firstboot_install_packages }}"
-      pre_firstboot_uninstall_packages: "{{ image. pre_firstboot_uninstall_packages }}"
+      pre_firstboot_install_packages: "{{ image.pre_firstboot_install_packages }}"
+      pre_firstboot_uninstall_packages: "{{ image.pre_firstboot_uninstall_packages }}"
       firstboot_script: "{{ image.firstboot_script }}"
       size: "{{ dl_img.size }}" # checksum would be better, but dl_img doesn't output it if changed=false;
-                                # at worst it won't trigger a rebuild based on base image change in rare cases
+# at worst it won't trigger a rebuild based on base image change in rare cases
 
 ########################################################################################
 ## Try to determine if a rebuild is needed and correspondingly set boolean build_image.
@@ -28,7 +28,7 @@
 
 - name: (build golden_image) Check whether golden_image and metadata.json exist
   become: true
-  stat:
+  ansible.builtin.stat:
     path: "{{ item }}"
     get_attributes: false
     get_checksum: false
@@ -39,13 +39,13 @@
   register: files_stat
 
 - name: (build golden_image) Set build_image based on file existence and base image change
-  set_fact:
+  ansible.builtin.set_fact:
     build_image: "{{ dl_img.changed or (not files_stat.results[0].stat.exists) or (not files_stat.results[1].stat.exists) }}"
 
 - name: (build golden_image) metadata.json exists, therefore read its content into a var
   become: true
   when: not build_image
-  slurp:
+  ansible.builtin.slurp:
     src: "{{ metadata_json_path }}"
   register: metadata_json
 
@@ -53,60 +53,56 @@
   when: not build_image
   block:
     - name: (build golden_image) Parse metadata.json into a dict
-      set_fact:
+      ansible.builtin.set_fact:
         metadata_json_dict: "{{ metadata_json.content | b64decode | from_json }}"
 
     - name: (build golden_image) Compare dicts
-      set_fact:
+      ansible.builtin.set_fact:
         build_image: "{{ metadata_json_dict != metadata }}"
   rescue:
     - name: (build golden_image) Set build_image to true in case parsing metadata.json fails
-      set_fact:
+      ansible.builtin.set_fact:
         build_image: true
 
 ########################################################################################
 ## Build image, by first copying and modifying an intermediate qcow2 and then moving the result to the final golden_image path
 
-- name: "(build golden_image) qemu-img convert to intermediate qcow2 image"
+- name: (build golden_image) qemu-img convert to intermediate qcow2 image
   become: true
   when: build_image
-  shell: "qemu-img convert -O qcow2 \"{{ base_image_download_path }}\" \"{{ intermediate_image_path }}\""
-
-- name: "(build golden_image) Install pre_firstboot_install_packages, uninstall pre_firstboot_uninstall_packages"
+  ansible.builtin.command: qemu-img convert -O qcow2 "{{ base_image_download_path }}" "{{ intermediate_image_path }}"
+- name: (build golden_image) Install pre_firstboot_install_packages, uninstall pre_firstboot_uninstall_packages
   become: true
   when: build_image
-  command: |
+  ansible.builtin.command: |
     virt-customize -a {{ intermediate_image_path }} \
     --uninstall "{{ image.pre_firstboot_uninstall_packages }}" \
     --install "{{ image.pre_firstboot_install_packages }}"
-
-- name: "(build golden_image) Copy over firstboot_script.sh"
+- name: (build golden_image) Copy over firstboot_script.sh
   become: true
   when: build_image
-  copy:
+  ansible.builtin.copy:
     content: "{{ image.firstboot_script }}"
     dest: "{{ tmp_dir }}/firstboot_script.sh"
-    
+
 - name: "(build golden_image) virt-customize: truncate /etc/machine-id and inject firstboot_script.sh to image"
   become: true
   when: build_image
-  command: |
+  ansible.builtin.command: |
     virt-customize -a {{ intermediate_image_path }} \
     --truncate /etc/machine-id
     --firstboot {{ tmp_dir }}/firstboot_script.sh
-
 - name: (build golden_image) Move intermediate_image to golden_image
   become: true
   when: build_image
-  command: "mv {{ intermediate_image_path }} {{ golden_image_path }}"
+  ansible.builtin.command: mv {{ intermediate_image_path }} {{ golden_image_path }}
   register: mv_result
   changed_when: mv_result.rc == 0
-  check_mode: no
-  
+  check_mode: false
+
 - name: (build golden_image) Write metadata to metadata.json
   become: true
   when: build_image
-  copy:
+  ansible.builtin.copy:
     content: "{{ metadata | to_nice_json }}"
     dest: "{{ metadata_json_path }}"
-

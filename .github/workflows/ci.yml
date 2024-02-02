@@ -1,31 +1,31 @@
+---
 name: CI
 
 on:
   push:
     branches:
-    - main
+      - main
   pull_request:
     branches:
-    - main
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up directory structure
-      run: |
-        mkdir -p ansible_collections/karlivory/zk
-        mv ./* ansible_collections/karlivory/zk/ || true
-        mv ./.* ansible_collections/karlivory/zk/ || true
+      - name: Set up directory structure
+        run: |
+          mkdir -p ansible_collections/karlivory/zk
+          mv ./* ansible_collections/karlivory/zk/ || true
+          mv ./.* ansible_collections/karlivory/zk/ || true
 
-    - name: Run unit and integration tests
-      run: |
-        cd ./ansible_collections/karlivory/zk
-        python -m pip install --upgrade pip
-        pip install -r ./test-requirements.txt
-        ansible-test units --requirements
-        ansible-test integration
-
+      - name: Run unit and integration tests
+        run: |
+          cd ./ansible_collections/karlivory/zk
+          python -m pip install --upgrade pip
+          pip install -r ./test-requirements.txt
+          ansible-test units --requirements
+          ansible-test integration

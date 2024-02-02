@@ -1,7 +1,7 @@
 ---
 # vars: kvm_host, image
 
-- set_fact:
+- ansible.builtin.set_fact:
     base_image_download_path: "{{ repository_dir }}/debian-11-generic-amd64-daily.qcow2"
 
-- import_tasks: ../build/debian.yml
+- ansible.builtin.import_tasks: ../build/debian.yml

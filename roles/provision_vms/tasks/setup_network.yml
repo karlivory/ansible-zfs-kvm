@@ -5,31 +5,30 @@
 - name: Check domain xml for nic
   community.general.xml:
     xmlstring: "{{ vm_virsh_dumpxml.stdout }}"
-    xpath: "/domain/devices/interface/address[@bus='0x{{ '%0.2x' | format(network.nic_bus) }}']"
+    xpath: /domain/devices/interface/address[@bus='0x{{ '%0.2x' | format(network.nic_bus) }}']
     count: true
   register: xml_count
   delegate_to: localhost
   connection: local
 
-- set_fact:
+- ansible.builtin.set_fact:
     vm_has_nic: "{{ xml_count.count > 0 }}"
 
-- set_fact:
+- ansible.builtin.set_fact:
     tmp_nic_xml_path: "{{ vm_tmp_dir }}/{{ network.name }}-nic.xml"
   when: not vm_has_nic
 
-- name: copy over network device file (*-nic.xml)
+- name: Copy over network device file (*-nic.xml)
   become: true
   when: not vm_has_nic
-  template:
-    src: "./define_domain/nic.xml.j2"
+  ansible.builtin.template:
+    src: ./define_domain/nic.xml.j2
     dest: "{{ tmp_nic_xml_path }}"
 
-- name: attach nic to vm
+- name: Attach nic to vm
   become: true
   when: not vm_has_nic
-  shell: "virsh attach-device {{ vm.name }} {{ tmp_nic_xml_path }} --persistent"
-
+  ansible.builtin.command: virsh attach-device {{ vm.name }} {{ tmp_nic_xml_path }} --persistent
 - karlivory.zk.print_yaml:
     data: "{{ network.netplan }}"
   when: network.netplan
@@ -72,8 +71,7 @@
         rm -f "${BAK_FILE}"
       fi
     timeout: 20
-    poll: 0.1
+    poll: !!float "0.1"
   register: run_cmd
   changed_when:
     - "'NETPLAN_APPLY_SUCCESS' in run_cmd.output.stdout | default('')"
-

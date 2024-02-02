@@ -1,5 +1,5 @@
 ---
-- set_fact:
+- ansible.builtin.set_fact:
     zk_vm:
       zk_vm_name: "{{ zk_vm_name }}"
       zk_vm_hostname: "{{ zk_vm_hostname }}"
@@ -20,15 +20,15 @@
 
 # zk_vm_kvm_hosts is either a single host or a host group, so we convert it to
 # zk_kvm_host_list = [host1, host2, ...]
-- set_fact:
+- ansible.builtin.set_fact:
     zk_kvm_host_list: "{{ groups[zk_vm_kvm_hosts] | default([zk_vm_kvm_hosts]) }}"
   delegate_to: localhost
   connection: local
   when:
     - inventory_hostname in groups['zk_vms']
 
-- set_fact:
-    zk_kvm_vms: "{{ zk_kvm_vms | default([]) + [hostvars[item].zk_vm]}}"
+- ansible.builtin.set_fact:
+    zk_kvm_vms: "{{ zk_kvm_vms | default([]) + [hostvars[item].zk_vm] }}"
   delegate_to: localhost
   connection: local
   loop: "{{ groups['zk_vms'] }}"
@@ -49,7 +49,7 @@
     - inventory_hostname in groups['zk_kvm_hosts']
   register: build_zk_kvm
 
-- set_fact:
+- ansible.builtin.set_fact:
     zk_kvm: "{{ build_zk_kvm.output }}"
   delegate_to: localhost
   connection: local
@@ -62,4 +62,3 @@
   connection: local
   when:
     - inventory_hostname in groups['zk_kvm_hosts']
-

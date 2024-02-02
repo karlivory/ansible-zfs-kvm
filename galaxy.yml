@@ -7,14 +7,14 @@ readme: README.md
 authors: []
 license:
   - MIT
-license_file: 'LICENSE'
+license_file: LICENSE
 tags: []
 dependencies: {}
 repository: https://github.com/karlivory/ansible-zfs-kvm
 documentation: https://github.com/karlivory/ansible-zfs-kvm/tree/main/README.md
 issues: https://github.com/karlivory/ansible-zfs-kvm/issues
 build_ignore:
-  - '*.tar.gz'
+  - "*.tar.gz"
   - .cache
   - .git
   - .gitignore

@@ -2,21 +2,18 @@
 # host: kvm_host
 # vars: vm
 
-- set_fact:
+- ansible.builtin.set_fact:
     vm_tmp_dir: "{{ zk_kvm.data_dir }}/tmp/{{ vm.name }}"
 
 - block:
-  - name: Create vm
-    include_tasks: ./02_define_domain.yml
-
-  - name: Wait for qemu-guest-agent
-    include_tasks: ./wait_for_qemu_agent.yml
-
-  - name: Set up vm networks, disks
-    include_tasks: ./03_vm_setup.yml
-
+    - name: Create vm
+      ansible.builtin.include_tasks: ./02_define_domain.yml
+    - name: Wait for qemu-guest-agent
+      ansible.builtin.include_tasks: ./wait_for_qemu_agent.yml
+    - name: Set up vm networks, disks
+      ansible.builtin.include_tasks: ./03_vm_setup.yml
   always:
-    - name: cleanup tmp
-      file:
+    - name: Cleanup tmp
+      ansible.builtin.file:
         path: "{{ vm_tmp_dir }}"
         state: absent

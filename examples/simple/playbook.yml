@@ -1,40 +1,41 @@
 ---
-- hosts: all
+- name: "Example: single vm"
+  hosts: all
   gather_facts: false
   tasks:
-  - name: Check if temporary ssh key exists
-    delegate_to: localhost
-    ansible.builtin.stat:
-      path: "./id_tmpkey.pub"
-    register: ssh_key_check
+    - name: Check if temporary ssh key exists
+      delegate_to: localhost
+      ansible.builtin.stat:
+        path: ./id_tmpkey.pub
+      register: ssh_key_check
 
-  - name: Generate temporary ssh keypair
-    delegate_to: localhost
-    ansible.builtin.openssh_keypair:
-      path: "./id_tmpkey"
-      type: rsa
-      size: 2048
-    when: not ssh_key_check.stat.exists
+    - name: Generate temporary ssh keypair
+      delegate_to: localhost
+      community.crypto.openssh_keypair:
+        path: ./id_tmpkey
+        type: rsa
+        size: 2048
+      when: not ssh_key_check.stat.exists
 
-  - name: Read temporary ssh pub key into a variable
-    delegate_to: localhost
-    ansible.builtin.slurp:
-      src: "./id_tmpkey.pub"
-    register: slurped_ssh_key
+    - name: Read temporary ssh pub key into a variable
+      delegate_to: localhost
+      ansible.builtin.slurp:
+        src: ./id_tmpkey.pub
+      register: slurped_ssh_key
 
-  - name: Update vms zk_vm_users variable to use temporary ssh key
-    set_fact:
-      zk_vm_users:
-        - name: root
-          password: rootpw
-        - name: testuser
-          groups: [testuser, sudo]
-          passwordless_sudo: true
-          ssh_keys: ["{{ slurped_ssh_key.content | b64decode }}"]
-    when:
-      - inventory_hostname in groups['zk_vms']
+    - name: Update vms zk_vm_users variable to use temporary ssh key
+      ansible.builtin.set_fact:
+        zk_vm_users:
+          - name: root
+            password: rootpw
+          - name: testuser
+            groups: [testuser, sudo]
+            passwordless_sudo: true
+            ssh_keys: ["{{ slurped_ssh_key.content | b64decode }}"]
+      when:
+        - inventory_hostname in groups['zk_vms']
 
-  - import_role:
-      name: karlivory.zk.provision
+    - ansible.builtin.import_role:
+        name: karlivory.zk.provision
 
-  - import_tasks: ./tests/01_ping.yml
+    - ansible.builtin.import_tasks: ./tests/01_ping.yml

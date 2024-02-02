@@ -1,5 +1,5 @@
 ---
-- set_fact:
+- ansible.builtin.set_fact:
     current_timestamp: "{{ lookup('pipe', 'date +%s%N') }}"
   when: current_timestamp is not defined
   connection: local
@@ -9,12 +9,12 @@
 ## main
 
 - name: Gather info from kvm host
-  include_tasks: ./01_gather_info_kvm.yml
+  ansible.builtin.include_tasks: ./01_gather_info_kvm.yml
   when:
     - inventory_hostname in groups['zk_kvm_hosts']
 
 - name: Create vm
-  include_tasks: ./02_define_domain.yml
+  ansible.builtin.include_tasks: ./02_define_domain.yml
   loop: "{{ zk_kvm.vms }}"
   loop_control:
     loop_var: vm
@@ -22,7 +22,7 @@
     - inventory_hostname in groups['zk_kvm_hosts']
 
 - name: Wait for qemu-guest-agent
-  include_tasks: ./wait_for_qemu_agent.yml
+  ansible.builtin.include_tasks: ./wait_for_qemu_agent.yml
   loop: "{{ zk_kvm.vms }}"
   loop_control:
     loop_var: vm
@@ -30,10 +30,9 @@
     - inventory_hostname in groups['zk_kvm_hosts']
 
 - name: Set up vm networks, disks
-  include_tasks: ./03_vm_setup.yml
+  ansible.builtin.include_tasks: ./03_vm_setup.yml
   loop: "{{ zk_kvm.vms }}"
   loop_control:
     loop_var: vm
   when:
     - inventory_hostname in groups['zk_kvm_hosts']
-

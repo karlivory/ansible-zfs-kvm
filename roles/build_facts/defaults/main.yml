@@ -7,8 +7,8 @@ zk_vm_users: []
 zk_kvm_networks: []
 zk_kvm_images:
   - name: debian12
-    url: "https://cdimage.debian.org/images/cloud/bookworm/daily/latest/debian-12-generic-amd64-daily.qcow2"
-    checksum: "sha512:https://cdimage.debian.org/images/cloud/bookworm/daily/latest/SHA512SUMS"
+    url: https://cdimage.debian.org/images/cloud/bookworm/daily/latest/debian-12-generic-amd64-daily.qcow2
+    checksum: sha512:https://cdimage.debian.org/images/cloud/bookworm/daily/latest/SHA512SUMS
     pre_firstboot_uninstall_packages: cloud-init
     pre_firstboot_install_packages: netplan.io,qemu-guest-agent,ncurses-term
     firstboot_script: |
@@ -22,8 +22,8 @@ zk_kvm_images:
       systemctl enable qemu-guest-agent && systemctl start qemu-guest-agent
       growpart /dev/vda 1 && resize2fs /dev/vda1
   - name: debian11
-    url: "https://cdimage.debian.org/images/cloud/bullseye/daily/latest/debian-11-generic-amd64-daily.qcow2"
-    checksum: "sha512:https://cdimage.debian.org/images/cloud/bullseye/daily/latest/SHA512SUMS"
+    url: https://cdimage.debian.org/images/cloud/bullseye/daily/latest/debian-11-generic-amd64-daily.qcow2
+    checksum: sha512:https://cdimage.debian.org/images/cloud/bullseye/daily/latest/SHA512SUMS
     pre_firstboot_uninstall_packages: cloud-init
     pre_firstboot_install_packages: netplan.io,qemu-guest-agent,ncurses-term
     firstboot_script: |
@@ -37,8 +37,8 @@ zk_kvm_images:
       systemctl enable qemu-guest-agent && systemctl start qemu-guest-agent
       growpart /dev/vda 1 && resize2fs /dev/vda1
   - name: ubuntu2204
-    url: "https://cloud-images.ubuntu.com/daily/server/jammy/current/jammy-server-cloudimg-amd64.img"
-    checksum: "sha256:https://cloud-images.ubuntu.com/jammy/current/SHA256SUMS"
+    url: https://cloud-images.ubuntu.com/daily/server/jammy/current/jammy-server-cloudimg-amd64.img
+    checksum: sha256:https://cloud-images.ubuntu.com/jammy/current/SHA256SUMS
     pre_firstboot_uninstall_packages: cloud-init
     pre_firstboot_install_packages: netplan.io,qemu-guest-agent
     firstboot_script: |

@@ -4,7 +4,7 @@
 
 - name: Install some packages
   become: true
-  apt:
+  ansible.builtin.apt:
     pkg:
       - bridge-utils
       - libguestfs-tools
@@ -24,16 +24,16 @@
     state: present
     extra_zfs_properties:
       mountpoint: none
-      canmount: off
+      canmount: false
 
-- set_fact:
+- ansible.builtin.set_fact:
     repository_dir: "{{ zk_kvm.data_dir }}/repository"
     images_dir: "{{ zk_kvm.data_dir }}/golden_images"
     tmp_dir: "{{ zk_kvm.data_dir }}/tmp"
 
 - name: Ensure repository, golden_images and tmp directories exist under data_dir/
   become: true
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     state: directory
   loop:
@@ -42,7 +42,7 @@
     - "{{ tmp_dir }}"
 
 - name: Build golden image
-  include_tasks: ./build_golden_image/main.yml
+  ansible.builtin.include_tasks: ./build_golden_image/main.yml
   vars:
     golden_image_path: "{{ images_dir }}/{{ image.name }}/image.qcow2"
     metadata_json_path: "{{ images_dir }}/{{ image.name }}/metadata.json"
@@ -50,4 +50,3 @@
   loop: "{{ zk_kvm.images }}"
   loop_control:
     loop_var: image
-

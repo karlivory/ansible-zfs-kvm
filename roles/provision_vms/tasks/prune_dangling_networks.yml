@@ -10,7 +10,7 @@
   connection: local
 
 - name: Detach dangling NICs
-  shell: virsh detach-interface --domain "{{ vm.name }}" --type "{{ item.nic_type }}" --mac "{{ item.mac }}" --persistent
+  ansible.builtin.command: virsh detach-interface --domain "{{ vm.name }}" --type "{{ item.nic_type }}" --mac "{{ item.mac }}" --persistent
   loop: "{{ dangling_nics.output.nics }}"
 
 # TODO: Improve rollback workflow:
@@ -44,7 +44,7 @@
         {% endfor %}
       fi
     timeout: 20
-    poll: 0.1
+    poll: !!float "0.1"
   register: run_cmd
   failed_when:
     - "'NETPLAN_APPLY_FAILED' in run_cmd.output.stdout | default('')"
