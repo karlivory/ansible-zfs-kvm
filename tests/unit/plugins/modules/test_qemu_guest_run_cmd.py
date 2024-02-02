@@ -3,8 +3,8 @@ import json
 
 import pytest
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.karlivory.zk.plugins.modules.qemu_guest_run_cmd import (
-    ModuleArgs, run_qemu_agent_command)
+from ansible_collections.karlivory.zk.plugins.modules.qemu_guest_run_cmd import \
+    run_module
 
 
 def test_successful_command_execution(ansible_module):
@@ -16,32 +16,35 @@ def test_successful_command_execution(ansible_module):
         status_response(True, 0, stdout, stderr),
     ]
 
-    res = run_qemu_agent_command(
-        ansible_module, ModuleArgs("testvm", "echo foo", 1, 0.01)
-    )
+    run_module(ansible_module, "testvm", "echo foo", 1, 0.01)
+    ansible_module.exit_json.assert_called_once()
+    call_args = ansible_module.exit_json.call_args[1]
 
-    assert res.changed
-    assert res.output["stdout"] == stdout
-    assert res.output["stderr"] == stderr
-    assert res.output["rc"] == 0
+    assert call_args["changed"] is True
+    assert call_args["output"]["stdout"] == stdout
+    assert call_args["output"]["stderr"] == stderr
+    assert call_args["output"]["rc"] == 0
 
 
-def test_stderr(ansible_module):
+def test_nonzero_rc_execution(ansible_module):
     stdout = "123"
     stderr = "error executing command"
 
     ansible_module.run_command.side_effect = [
         exec_response(1234),
+        status_response(False),
+        status_response(False),
         status_response(True, 21, stdout, stderr),
     ]
 
-    res = run_qemu_agent_command(
-        ansible_module, ModuleArgs("testvm", "echo foo", 1, 0.01)
-    )
-    assert res.changed
-    assert res.output["stdout"] == stdout
-    assert res.output["stderr"] == stderr
-    assert res.output["rc"] == 21
+    run_module(ansible_module, "testvm", "echo foo", 1, 0.01)
+    ansible_module.exit_json.assert_called_once()
+    call_args = ansible_module.exit_json.call_args[1]
+
+    assert call_args["changed"] is True
+    assert call_args["output"]["stdout"] == stdout
+    assert call_args["output"]["stderr"] == stderr
+    assert call_args["output"]["rc"] == 21
 
 
 def test_timeout(ansible_module):
@@ -51,12 +54,11 @@ def test_timeout(ansible_module):
         status_response(True, 0),
     ]
 
-    res = run_qemu_agent_command(
-        ansible_module, ModuleArgs("testvm", "echo foo", 1, 0.1)
-    )
+    run_module(ansible_module, "testvm", "echo foo", 1, 0.1)
+    ansible_module.fail_json.assert_called_once()
+    call_args = ansible_module.fail_json.call_args[1]
 
-    assert res.failed
-    assert "timed out" in res.msg
+    assert "timed out" in call_args["msg"]
 
 
 ## -------------------------------------------------------------------------- ##
