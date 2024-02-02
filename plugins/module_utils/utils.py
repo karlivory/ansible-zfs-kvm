@@ -55,7 +55,9 @@ class Utils:
         return from_dict(data_class, data=merged)
 
     @staticmethod
-    def run_module(args_class: Type[T], run: Callable[[T], ModuleResult]) -> None:
+    def run_module(
+        args_class: Type[T], run: Callable[[AnsibleModule, T], ModuleResult]
+    ) -> None:
         argument_spec = Utils.dataclass_to_argument_spec(args_class)
 
         module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=True)
@@ -64,7 +66,7 @@ class Utils:
         args: T = from_dict(data_class=args_class, data=params_dict)
 
         try:
-            result = run(args)
+            result = run(module, args)
             if result.failed:
                 module.fail_json(msg=result.msg, output=result.output)
             module.exit_json(
@@ -101,9 +103,11 @@ class Utils:
             field_metadata = dataclass_field.metadata
 
             base_field_spec = {
-                "type": field_type.__name__.lower()
-                if hasattr(field_type, "__name__")
-                else str(field_type).lower(),
+                "type": (
+                    field_type.__name__.lower()
+                    if hasattr(field_type, "__name__")
+                    else str(field_type).lower()
+                ),
                 "required": dataclass_field.default is MISSING
                 and dataclass_field.default_factory is MISSING
                 and not is_optional,

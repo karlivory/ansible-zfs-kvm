@@ -42,7 +42,7 @@ def test_no_dangling_nics():
 </domain>
     """
     expected_result = Output(nics=[])
-    result = get_dangling_nics(ModuleArgs(dumpxml, networks))
+    result = get_dangling_nics(None, ModuleArgs(dumpxml, networks))
 
     assert result.output == asdict(expected_result)
 
@@ -76,6 +76,6 @@ def test_one_dangling_nic():
     expected_result = Output(
         nics=[DanglingNic(mac="52:54:00:00:93:8c", nic_type="bridge", nic_bus=8)]
     )
-    result = get_dangling_nics(ModuleArgs(dumpxml, networks))
+    result = get_dangling_nics(None, ModuleArgs(dumpxml, networks))
 
     assert result.output == asdict(expected_result)

@@ -7,7 +7,7 @@ from ansible_collections.karlivory.zk.plugins.module_utils.utils import (
     ModuleResult, Utils)
 
 
-def build_kvm_config(args: ZkKVMHost) -> ModuleResult:
+def build_kvm_config(_, args: ZkKVMHost) -> ModuleResult:
     config = KVMHost.from_conf(args)
 
     return ModuleResult(output=asdict(config))

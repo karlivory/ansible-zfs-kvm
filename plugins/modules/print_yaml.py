@@ -19,7 +19,7 @@ class ModuleArgs:
     data: dict[str, Any]
 
 
-def print_yaml(args: ModuleArgs) -> ModuleResult:
+def print_yaml(_, args: ModuleArgs) -> ModuleResult:
     output = yaml.dump(args.data, Dumper=MyDumper, default_flow_style=False)
     return ModuleResult(output=output)
 

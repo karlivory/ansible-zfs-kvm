@@ -2,11 +2,10 @@
 from dataclasses import asdict, dataclass
 from typing import List
 
-from ansible_collections.karlivory.zk.plugins.module_utils.model import VMNetwork
+from ansible_collections.karlivory.zk.plugins.module_utils.model import \
+    VMNetwork
 from ansible_collections.karlivory.zk.plugins.module_utils.utils import (
-    ModuleResult,
-    Utils,
-)
+    ModuleResult, Utils)
 from lxml import etree  # type: ignore
 
 
@@ -34,7 +33,7 @@ def bus_string_to_int(n: str) -> int:
     return int(n)
 
 
-def get_dangling_nics(args: ModuleArgs) -> ModuleResult:
+def get_dangling_nics(_, args: ModuleArgs) -> ModuleResult:
     result = []
     # Parse the XML string
     root = etree.fromstring(args.dumpxml)  # pylint: disable=c-extension-no-member
