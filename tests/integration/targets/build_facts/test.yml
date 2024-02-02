@@ -4,6 +4,13 @@
   roles:
     - karlivory.zk.build_facts
   tasks:
+    - set_fact:
+        zk: "{{ zk | default({}) | combine({ item: hostvars[item].zk_kvm })}}"
+      delegate_to: localhost
+      connection: local
+      loop: "{{ groups['zk_kvm_hosts'] }}"
+      run_once: true
+
     - karlivory.zk.print_yaml:
         data: "{{ zk }}"
       delegate_to: localhost

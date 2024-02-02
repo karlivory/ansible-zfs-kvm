@@ -11,21 +11,11 @@
       - libvirt-clients
       - libvirt-daemon
       - libvirt-daemon-system
-      # - libvirt-dev # needed for python libvirt package (?)
       - python3
-      - python3-pip
       - python3-libvirt
       - python3-lxml
       - qemu-kvm
-      - sanoid
       - virtinst
-
-# - name: Install some pip packages
-#   when: inventory_hostname in groups['kvm_hosts']
-#   pip:
-#     name:
-#       - libvirt-python
-#       - python3-libvirt
 
 - name: Ensure zk_kvm_zvol_parent zfs dataset exists
   become: true
@@ -52,7 +42,6 @@
     - "{{ tmp_dir }}"
 
 - name: Build golden image
-  # when: false #TODO:
   include_tasks: ./build_golden_image/main.yml
   vars:
     golden_image_path: "{{ images_dir }}/{{ image.name }}/image.qcow2"

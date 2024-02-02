@@ -27,12 +27,6 @@
         src: "{{ golden_image_path }}"
         dest: "{{ intermediate_image_path }}"
 
-    # TEMPORARY: for debugging
-    # - name: virt-customize add root pw (TEMP)
-    #   command: |
-    #     virt-customize -a {{ intermediate_image_path }} \
-    #     --root-password password:123
-
     - name: Create zfs volume for vm boot disk
       include_tasks: ../setup_disk/create_disk.yml
       vars:

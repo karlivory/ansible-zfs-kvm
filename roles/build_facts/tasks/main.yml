@@ -56,14 +56,6 @@
   when:
     - inventory_hostname in groups['zk_kvm_hosts']
 
-# should zk be a list instead?
-- set_fact:
-    zk: "{{ zk | default({}) | combine({ item: hostvars[item].zk_kvm })}}"
-  delegate_to: localhost
-  connection: local
-  loop: "{{ groups['zk_kvm_hosts'] }}"
-  run_once: true
-
 - karlivory.zk.validate_kvm_config:
     to_validate: "{{ zk_kvm }}"
   delegate_to: localhost
