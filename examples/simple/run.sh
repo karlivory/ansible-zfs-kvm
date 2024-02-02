@@ -40,7 +40,6 @@ setup_venv() {
 }
 
 setup_ansible() {
-    # TODO: check that ansible version (ansible --version) matches the one in requirements.txt
     ansible-galaxy collection install -r requirements.yml --force
 }
 
@@ -52,5 +51,4 @@ setup_ansible
 export ANSIBLE_FORCE_COLOR=1
 export ANSIBLE_HOST_KEY_CHECKING=False
 
-ansible-playbook site.yml -i inventory/ $ARGS
-ansible-playbook tests.yml -i inventory/ $ARGS
+ansible-playbook playbook.yml -i inventory.yml $ARGS

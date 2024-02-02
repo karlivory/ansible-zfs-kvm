@@ -1,0 +1,4 @@
+---
+- ansible.builtin.ping:
+  when:
+    inventory_hostname in groups['zk_vms']
