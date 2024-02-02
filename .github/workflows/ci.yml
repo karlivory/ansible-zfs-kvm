@@ -12,8 +12,8 @@ jobs:
     - name: Set up directory structure
       run: |
         mkdir -p ansible_collections/karlivory/zk
-        mv ${{ github.workspace }}/* ansible_collections/karlivory/zk/
-        mv ${{ github.workspace }}/.* ansible_collections/karlivory/zk/ || true
+        mv ./* ansible_collections/karlivory/zk/ || true
+        mv ./.* ansible_collections/karlivory/zk/ || true
 
     - name: Set up Python 3.11
       uses: actions/setup-python@v2
