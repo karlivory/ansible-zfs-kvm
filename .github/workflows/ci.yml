@@ -21,7 +21,7 @@ jobs:
         mv ./* ansible_collections/karlivory/zk/ || true
         mv ./.* ansible_collections/karlivory/zk/ || true
 
-    - name: Run unit tests
+    - name: Run unit and integration tests
       run: |
         cd ./ansible_collections/karlivory/zk
         python -m pip install --upgrade pip
