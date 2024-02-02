@@ -9,29 +9,21 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.11'
+
     - name: Set up directory structure
       run: |
         mkdir -p ansible_collections/karlivory/zk
         mv ./* ansible_collections/karlivory/zk/ || true
         mv ./.* ansible_collections/karlivory/zk/ || true
 
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.11'
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r ansible_collections/karlivory/zk/test-requirements.txt
-
     - name: Run unit tests
-      working-directory: ./ansible_collections/karlivory/zk
       run: |
-        ansible-test units --requirements
-
-    - name: Run integration tests
-      working-directory: ./ansible_collections/karlivory/zk
-      run: |
-        ansible-test integration
+        sudo apt-get update
+        sudo apt-get install virtualenv -y
+        cd ./ansible_collections/karlivory/zk
+        ./run-tests.sh
 
