@@ -1,9 +1,10 @@
 #!/usr/bin/python
+import copy
 from dataclasses import asdict
 from typing import List
 
 from ansible_collections.karlivory.zk.plugins.module_utils.model import (
-    VM, KVMHost, VMNetwork, VMUser, ZkKVMHost, ZkVM, ZkVMNetwork)
+    VM, ZFS, KVMHost, VMNetwork, VMUser, ZkKVMHost, ZkVM, ZkVMNetwork)
 from ansible_collections.karlivory.zk.plugins.module_utils.utils import (
     ModuleResult, Utils)
 
@@ -32,6 +33,14 @@ def vm_from_conf(vm: ZkVM) -> VM:
                 password=zk_user.password,
             )
         )
+    for disk in vm.zk_vm_disks:
+        zfs_props = {
+            **vm.zk_vm_disk_default_zfs_properties,
+            **(disk.zfs.properties if disk.zfs and disk.zfs.properties else {}),
+        }
+        zfs_props.setdefault("volsize", disk.size)
+        disk.zfs = ZFS(properties=zfs_props)
+
     return VM(
         name=vm.zk_vm_name,
         hostname=vm.zk_vm_hostname,

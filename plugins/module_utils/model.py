@@ -35,14 +35,8 @@ class VMNetwork:
 
 
 @dataclass
-class ZFSProperties:
-    volblocksize: Optional[str]
-    compression: Optional[str]
-
-
-@dataclass
 class ZFS:
-    properties: Optional[ZFSProperties]
+    properties: Optional[dict]
 
 
 @dataclass
@@ -113,6 +107,7 @@ class ZkVM:
     zk_vm_prune_dangling_networks: bool
     zk_vm_prune_dangling_disks: bool
     zk_vm_users: List[ZkVMUser]
+    zk_vm_disk_default_zfs_properties: dict
 
 
 @dataclass
@@ -128,6 +123,7 @@ class VM:
     prune_dangling_networks: bool
     prune_dangling_disks: bool
     users: List[VMUser]
+    # disk_default_zfs_properties: dict
 
 
 @dataclass

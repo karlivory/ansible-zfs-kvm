@@ -12,6 +12,7 @@
       zk_vm_prune_dangling_disks: "{{ zk_vm_prune_dangling_disks }}"
       zk_vm_prune_dangling_networks: "{{ zk_vm_prune_dangling_networks }}"
       zk_vm_users: "{{ zk_vm_users }}"
+      zk_vm_disk_default_zfs_properties: "{{ zk_vm_disk_default_zfs_properties }}"
   delegate_to: localhost
   connection: local
   when:

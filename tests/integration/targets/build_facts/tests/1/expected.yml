@@ -8,7 +8,13 @@ testkvm:
         - dev: vda
           name: testvm1-root
           size: 10G
-          zfs: null
+          zfs:
+            properties:
+              compression: 'off'
+              setuid: 'on'
+              snapdev: hidden
+              volblocksize: 128k
+              volsize: 10G
       hostname: ''
       image: debian11
       memory_mb: 3000
