@@ -4,8 +4,7 @@ testkvm:
   images: []
   memballoon_mem_limit_mb: 8000
   vms:
-    - boot_disk_dev: vda
-      disks:
+    - disks:
         - dev: vda
           name: testvm1-root
           size: 10G
