@@ -36,6 +36,7 @@ class VMNetwork:
 
 @dataclass
 class ZFS:
+    zvol_parent: Optional[str]
     properties: Optional[dict]
 
 
@@ -108,6 +109,7 @@ class ZkVM:
     zk_vm_prune_dangling_disks: bool
     zk_vm_users: List[ZkVMUser]
     zk_vm_disk_default_zfs_properties: dict
+    zk_vm_disk_default_zvol_parent: Optional[str]
 
 
 @dataclass
@@ -131,7 +133,6 @@ class ZkKVMHost:
     ansible_host: str
     zk_kvm_vms: List[ZkVM]
     zk_kvm_images: List[Images]
-    zk_kvm_zvol_parent: str
     zk_kvm_data_dir: str
     zk_kvm_memballoon_mem_limit_mb: int
     zk_kvm_networks: List[ZkVMNetwork]
@@ -142,6 +143,5 @@ class KVMHost:
     ansible_host: str
     images: List[Images]
     data_dir: str
-    zvol_parent: str
     vms: List[VM]
     memballoon_mem_limit_mb: int

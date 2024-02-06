@@ -3,12 +3,12 @@ all:
   vars:
     ansible_connection: local
     zk_kvm_memballoon_mem_limit_mb: 8000
+    zk_vm_disk_default_zvol_parent: zroot/zk
     zk_vm_disk_default_zfs_properties:
       volblocksize: 128k
       compression: "lz4"
       snapdev: "hidden"
     zk_kvm_data_dir: /zk-data
-    zk_kvm_zvol_parent: zroot/zk
     zk_kvm_images: []
     zk_vm_users:
       - name: root
@@ -33,9 +33,17 @@ all:
               dev: vda
               size: 10G
               zfs:
+                zvol_parent: zroot/zk
                 properties:
                   compression: "off"
                   setuid: "on"
+            - name: "{{ zk_vm_name }}-data"
+              dev: vdb
+              size: 1G
+              zfs:
+                zvol_parent: dpool/data
+                properties:
+                  compression: "lz4"
           zk_vm_networks:
             - name: virbr0
               netplan:

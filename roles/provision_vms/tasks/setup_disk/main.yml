@@ -3,10 +3,11 @@
 # vars: vm, zk_kvm, disk
 
 - ansible.builtin.set_fact:
-    zfs_volume: "{{ zk_kvm.zvol_parent }}/{{ disk.name }}"
+    zfs_volume: "{{ disk.zfs.zvol_parent }}/{{ disk.name }}"
 
-- ansible.builtin.set_fact:
-    vm_has_disk: false
+- name: Create disk
+  ansible.builtin.include_tasks: ./create_disk.yml
+  when: disk_idx != 0
 
 - name: Check domain xml whether it has a disk with matching source dev
   community.general.xml:
@@ -18,15 +19,11 @@
   connection: local
 
 - ansible.builtin.set_fact:
+    vm_has_disk: false
+
+- ansible.builtin.set_fact:
     vm_has_disk: "{{ xml_count.count > 0 }}"
 
-- name: Check if zvol exists
-  ansible.builtin.set_fact:
-    volume_exists: "{{ zfs_volume in (zk_info.zvol_parent_volumes | map(attribute='name') | list) }}"
-
-- name: Create disk
-  when: not vm_has_disk and not volume_exists
-  ansible.builtin.include_tasks: ./create_disk.yml
 - ansible.builtin.set_fact:
     tmp_disk_xml_path: "{{ vm_tmp_dir }}/{{ disk.name }}-disk.xml"
   when: not vm_has_disk

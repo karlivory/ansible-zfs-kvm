@@ -2,7 +2,11 @@
 # host: kvm_host
 # vars: vm, zk_kvm, disk, zfs_volume
 
+- ansible.builtin.set_fact:
+    volume_exists: "{{ zfs_volume in zk_info.zfs_children[disk.zfs.zvol_parent] }}"
+
 - name: Create zfs volume for disk
+  when: not volume_exists
   become: true
   community.general.zfs:
     name: "{{ zfs_volume }}"

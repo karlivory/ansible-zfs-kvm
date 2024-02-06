@@ -11,14 +11,7 @@
 - block:
     - ansible.builtin.set_fact:
         boot_disk: "{{ vm.disks[0] }}"
-        boot_disk_zfs_volume: "{{ zk_kvm.zvol_parent }}/{{ vm.disks[0].name }}"
-
-    - ansible.builtin.set_fact:
-        volume_exists: "{{ boot_disk_zfs_volume in (zk_info.zvol_parent_volumes | map(attribute='name') | list) }}"
-
-    - ansible.builtin.assert:
-        that: not volume_exists
-        fail_msg: Boot disk zfs volume {{ boot_disk_zfs_volume }} for vm.name == {{ vm.name }} already exists!
+        boot_disk_zfs_volume: "{{ vm.disks[0].zfs.zvol_parent }}/{{ vm.disks[0].name }}"
 
     - name: Copy golden image to temporary image
       become: true

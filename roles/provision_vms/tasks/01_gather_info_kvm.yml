@@ -8,20 +8,32 @@
   register: virt_list_vms
   changed_when: false
 
-- name: Get info about zfs volume
+- name: Initialize an empty list for zvol_parents
+  set_fact:
+    zvol_parents_list: []
+
+- name: Loop through all VMs and their disks to get zvol_parents
+  ansible.builtin.set_fact:
+    zvol_parents_list: "{{ zvol_parents_list + [item.1.zfs.zvol_parent] }}"
+  loop: "{{ zk_kvm.vms | subelements('disks') }}"
+  when: item.1.zfs is defined and item.1.zfs.zvol_parent is defined
+
+- name: Get info about zfs datasets for each zvol_parent 
   become: true
   community.general.zfs_facts:
-    name: "{{ zk_kvm.zvol_parent }}"
+    name: "{{ item }}"
     depth: 1
     recurse: true
-    type: volume
+    type: all
   register: zfs_facts
+  loop: "{{ zvol_parents_list }}"
+
+- name: Compile dataset names for each zvol_parent
+  set_fact:
+    zk_info: "{{ zk_info | default({}) | combine({ 'zfs_children': { item.item: dataset_names } }, recursive=True) }}"
+  loop: "{{ zfs_facts.results }}"
+  vars:
+    dataset_names: "{{ item.ansible_facts.ansible_zfs_datasets | map(attribute='name') | list }}"
 
 - ansible.builtin.set_fact:
-    zk_info: >
-      {{
-        zk_info | default({}) | combine({
-          'virt_list_vms': virt_list_vms.list_vms,
-          'zvol_parent_volumes': zfs_facts.ansible_facts.ansible_zfs_datasets
-        })
-      }}
+    zk_info: "{{ zk_info | default({}) | combine({ 'virt_list_vms': virt_list_vms.list_vms }) }}"

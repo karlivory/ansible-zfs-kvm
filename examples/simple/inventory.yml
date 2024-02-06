@@ -3,7 +3,7 @@ all:
   vars:
     zk_kvm_memballoon_mem_limit_mb: 8000
     zk_kvm_data_dir: /zk-data
-    zk_kvm_zvol_parent: zroot/zk
+    zk_vm_disk_default_zvol_parent: zroot/zk
     zk_vm_users: []
   children:
     zk_vms:

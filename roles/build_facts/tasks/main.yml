@@ -13,6 +13,7 @@
       zk_vm_prune_dangling_networks: "{{ zk_vm_prune_dangling_networks }}"
       zk_vm_users: "{{ zk_vm_users }}"
       zk_vm_disk_default_zfs_properties: "{{ zk_vm_disk_default_zfs_properties }}"
+      zk_vm_disk_default_zvol_parent: "{{ zk_vm_disk_default_zvol_parent | default(false) }}"
   delegate_to: localhost
   connection: local
   when:
@@ -39,7 +40,6 @@
     ansible_host: "{{ ansible_host }}"
     zk_kvm_vms: "{{ zk_kvm_vms }}"
     zk_kvm_images: "{{ zk_kvm_images }}"
-    zk_kvm_zvol_parent: "{{ zk_kvm_zvol_parent }}"
     zk_kvm_data_dir: "{{ zk_kvm_data_dir }}"
     zk_kvm_memballoon_mem_limit_mb: "{{ zk_kvm_memballoon_mem_limit_mb }}"
     zk_kvm_networks: "{{ zk_kvm_networks }}"

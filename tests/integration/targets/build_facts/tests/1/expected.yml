@@ -15,6 +15,17 @@ testkvm:
               snapdev: hidden
               volblocksize: 128k
               volsize: 10G
+            zvol_parent: zroot/zk
+        - dev: vdb
+          name: testvm1-data
+          size: 1G
+          zfs:
+            properties:
+              compression: lz4
+              snapdev: hidden
+              volblocksize: 128k
+              volsize: 1G
+            zvol_parent: dpool/data
       hostname: ''
       image: debian11
       memory_mb: 3000
@@ -57,4 +68,3 @@ testkvm:
           passwordless_sudo: true
           ssh_keys: []
       vcpus: 1
-  zvol_parent: zroot/zk

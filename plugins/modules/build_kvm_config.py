@@ -1,5 +1,4 @@
 #!/usr/bin/python
-import copy
 from dataclasses import asdict
 from typing import List
 
@@ -38,8 +37,13 @@ def vm_from_conf(vm: ZkVM) -> VM:
             **vm.zk_vm_disk_default_zfs_properties,
             **(disk.zfs.properties if disk.zfs and disk.zfs.properties else {}),
         }
+        zvol_parent = (
+            disk.zfs.zvol_parent
+            if disk.zfs and disk.zfs.zvol_parent
+            else vm.zk_vm_disk_default_zvol_parent
+        )
         zfs_props.setdefault("volsize", disk.size)
-        disk.zfs = ZFS(properties=zfs_props)
+        disk.zfs = ZFS(zvol_parent=zvol_parent, properties=zfs_props)
 
     return VM(
         name=vm.zk_vm_name,
@@ -136,7 +140,6 @@ def build_kvm_config(_, args: ZkKVMHost) -> ModuleResult:
     config = KVMHost(
         vms=new_vms,
         images=args.zk_kvm_images,
-        zvol_parent=args.zk_kvm_zvol_parent,
         data_dir=args.zk_kvm_data_dir,
         ansible_host=args.ansible_host,
         memballoon_mem_limit_mb=args.zk_kvm_memballoon_mem_limit_mb,

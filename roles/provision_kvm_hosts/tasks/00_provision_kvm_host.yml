@@ -17,15 +17,6 @@
       - qemu-kvm
       - virtinst
 
-- name: Ensure zk_kvm_zvol_parent zfs dataset exists
-  become: true
-  community.general.zfs:
-    name: "{{ zk_kvm.zvol_parent }}"
-    state: present
-    extra_zfs_properties:
-      mountpoint: none
-      canmount: false
-
 - ansible.builtin.set_fact:
     repository_dir: "{{ zk_kvm.data_dir }}/repository"
     images_dir: "{{ zk_kvm.data_dir }}/golden_images"

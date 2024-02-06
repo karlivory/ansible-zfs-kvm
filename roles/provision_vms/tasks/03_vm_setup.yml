@@ -18,6 +18,7 @@
   loop: "{{ vm.disks }}"
   loop_control:
     loop_var: disk
+    index_var: disk_idx
 
 - ansible.builtin.include_tasks: ./setup_users.yml
 - when: vm.prune_dangling_networks
