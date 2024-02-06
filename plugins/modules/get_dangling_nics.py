@@ -46,14 +46,12 @@ def get_dangling_nics(_, args: ModuleArgs) -> ModuleResult:
         bus = address.get("bus")
         assert bus is not None, f"ERROR! interface {str(interface)} address.bus is None"
         bus = bus_string_to_int(bus)
-        print(bus)
         if bus not in defined_bus_numbers:
             mac = interface.find("mac")
             assert mac is not None, f"ERROR! interface {str(interface)} mac is None"
             mac = mac.get("address")
             assert mac is not None, f"ERROR! interface {str(interface)} mac is None"
             nic_type = interface.get("type")
-            print(mac)
             assert (
                 nic_type is not None
             ), f"ERROR! interface {str(interface)} type is None"

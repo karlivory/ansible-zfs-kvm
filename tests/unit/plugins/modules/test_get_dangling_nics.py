@@ -28,7 +28,7 @@ def test_no_dangling_nics():
         ),
     ]
     dumpxml = """
-<domain type='kvm' id='2'>
+<domain type='kvm'>
   <devices>
     <interface type='bridge'>
       <mac address='52:54:00:ba:58:d3' />
@@ -60,7 +60,7 @@ def test_one_dangling_nic():
         )
     ]
     dumpxml = """
-<domain type='kvm' id='2'>
+<domain type='kvm'>
   <devices>
     <interface type='bridge'>
       <mac address='52:54:00:ba:58:d3' />

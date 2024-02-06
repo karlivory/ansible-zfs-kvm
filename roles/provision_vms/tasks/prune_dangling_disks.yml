@@ -1,6 +1,14 @@
 ---
-# TODO:
 # host kvm_host
 # vars: vm, vm_virsh_dumpxml
 
-# similar to prune_dangling_networks
+- karlivory.zk.get_dangling_disks:
+    dumpxml: "{{ vm_virsh_dumpxml.stdout }}"
+    disks: "{{ vm.disks }}"
+  register: dangling_disks
+  delegate_to: localhost
+  connection: local
+
+- name: Detach dangling disks
+  ansible.builtin.command: virsh detach-disk --domain "{{ vm.name }}" --target "{{ item.dev }}" --persistent
+  loop: "{{ dangling_disks.output.disks }}"
