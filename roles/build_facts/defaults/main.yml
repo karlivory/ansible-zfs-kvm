@@ -56,3 +56,4 @@ zk_vm_prune_dangling_networks: true
 zk_vm_prune_dangling_disks: true
 zk_vm_boot_disk_dev: vda
 zk_vm_qemu_machine_type: pc-q35-6.2
+zk_vm_disk_default_zfs_volblocksize: 128k

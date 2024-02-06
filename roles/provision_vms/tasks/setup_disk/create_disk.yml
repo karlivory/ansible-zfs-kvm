@@ -9,4 +9,4 @@
     state: present
     extra_zfs_properties:
       volsize: "{{ disk.size }}"
-      volblocksize: "{{ disk.zfs.volblocksize | default('128k') }}"
+      volblocksize: "{{ disk.zfs.volblocksize | default(zk_vm_disk_default_zfs_volblocksize) }}"
