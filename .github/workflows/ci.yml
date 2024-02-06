@@ -31,7 +31,7 @@ jobs:
       - name: Run unit and integration tests
         run: |
           cd ./ansible_collections/karlivory/zk
-          python -m pip install --upgrade pip
-          pip install -r ./test-requirements.txt
+          python3 -m pip install --upgrade pip
+          python3 -m pip install -r ./test-requirements.txt
           ansible-test units --requirements
           ansible-test integration
