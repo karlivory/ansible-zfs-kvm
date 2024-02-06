@@ -51,4 +51,4 @@ setup_ansible
 export ANSIBLE_FORCE_COLOR=1
 export ANSIBLE_HOST_KEY_CHECKING=False
 
-ansible-playbook playbook.yml -i inventory.yml $ARGS
+ansible-playbook playbook.yml -i inventory.yml -K $ARGS

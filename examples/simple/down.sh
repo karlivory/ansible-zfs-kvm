@@ -3,3 +3,4 @@
 sudo virsh destroy --domain testvm1
 sudo virsh undefine --domain testvm1
 sudo zfs destroy zroot/zk/testvm1-root
+sudo zfs destroy zroot/zk/testvm1-data

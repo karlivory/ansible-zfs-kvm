@@ -1,0 +1,8 @@
+---
+- block:
+    - ansible.builtin.import_tasks: ./01_ping.yml
+    - ansible.builtin.import_tasks: ./02_attach_and_detach_disk.yml
+  any_errors_fatal: true
+
+- debug:
+    msg: "OK: All tests passed"
