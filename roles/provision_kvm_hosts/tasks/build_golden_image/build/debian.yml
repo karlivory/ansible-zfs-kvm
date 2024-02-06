@@ -9,9 +9,6 @@
     checksum: "{{ image.checksum }}"
   register: dl_img
 
-- ansible.builtin.debug:
-    var: dl_img
-
 - name: (build golden_image) build metadata var
   ansible.builtin.set_fact:
     metadata:
