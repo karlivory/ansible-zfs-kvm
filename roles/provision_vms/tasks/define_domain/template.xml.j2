@@ -41,7 +41,7 @@
         <disk type="block" device="disk">
           <driver name="qemu" type="raw" cache="none" io="native"/>
           <source dev="/dev/zvol/{{ boot_disk_zfs_volume }}" index="1"/>
-          <target dev="{{ vm.boot_disk_dev }}" bus="virtio"/>
+          <target dev="{{ boot_disk.dev }}" bus="virtio"/>
           <address type="pci" domain="0x0000" bus="1" slot="0" function="0"/>
         </disk>
         <memballoon model="virtio">

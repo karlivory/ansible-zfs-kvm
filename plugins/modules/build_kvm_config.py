@@ -36,7 +36,6 @@ def vm_from_conf(vm: ZkVM) -> VM:
         name=vm.zk_vm_name,
         hostname=vm.zk_vm_hostname,
         disks=vm.zk_vm_disks,
-        boot_disk_dev=vm.zk_vm_boot_disk_dev,
         image=vm.zk_vm_image,
         networks=[],
         memory_mb=vm.zk_vm_memory_mb,

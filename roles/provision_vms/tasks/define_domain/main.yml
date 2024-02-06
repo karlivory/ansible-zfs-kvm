@@ -30,7 +30,7 @@
     - name: Create zfs volume for vm boot disk
       ansible.builtin.include_tasks: ../setup_disk/create_disk.yml
       vars:
-        disk: "{{ vm.disks | selectattr('dev', 'equalto', vm.boot_disk_dev) | first }}"
+        disk: "{{ boot_disk }}"
         zfs_volume: "{{ boot_disk_zfs_volume }}"
 
     - name: Qemu-img convert temporary image to raw zvol # params tuned for fast copying
