@@ -2,6 +2,7 @@
 - block:
     - ansible.builtin.import_tasks: ./01_ping.yml
     - ansible.builtin.import_tasks: ./02_attach_and_detach_disk.yml
+    - ansible.builtin.import_tasks: ./03_attach_and_detach_network.yml
   any_errors_fatal: true
 
 - debug:

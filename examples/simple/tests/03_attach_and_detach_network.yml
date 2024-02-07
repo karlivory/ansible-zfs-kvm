@@ -1,2 +1,130 @@
 ---
-# TODO
+- name: Verify vm ping responds
+  delegate_to: localhost
+  command: ping 192.168.122.100 -c 1 -W 1
+  register: ping_vm
+  failed_when: ping_vm.rc != 0
+  retries: 30
+  delay: 1
+  until: ping_vm.rc == 0
+
+- name: Update vm networks var (rm networks)
+  ansible.builtin.set_fact:
+    zk_vm_networks: []
+  when: inventory_hostname in groups['zk_vms']
+
+- ansible.builtin.import_role:
+    name: karlivory.zk.build_facts
+- ansible.builtin.import_role:
+    name: karlivory.zk.provision_vms
+
+- name: Assert domain xml does not have removed network
+  command: virsh dumpxml {{ zk_vm_name }}
+  register: vm_xml_after_removal
+  delegate_to: "{{ zk_vm_kvm_hosts }}"
+  changed_when: false
+  when: inventory_hostname in groups['zk_vms']
+- assert:
+    that:
+      - "'virbr0' not in vm_xml_after_removal.stdout"
+    fail_msg: "Removed network is still present in domain XML"
+  when: inventory_hostname in groups['zk_vms']
+
+- name: Verify vm ping does not respond
+  command: ping 192.168.122.100 -c 1 -w 1
+  delegate_to: localhost
+  register: ping_vm
+  failed_when: ping_vm.rc == 0
+
+- name: Assert domain xml does not have removed network
+  command: virsh dumpxml {{ zk_vm_name }}
+  register: vm_xml_after_removal
+  delegate_to: "{{ zk_vm_kvm_hosts }}"
+  changed_when: false
+  when: inventory_hostname in groups['zk_vms']
+- assert:
+    that:
+      - "'virbr0' not in vm_xml_after_removal.stdout"
+    fail_msg: "Removed network is still present in domain XML"
+  when: inventory_hostname in groups['zk_vms']
+
+- name: Update vm networks var (add network)
+  ansible.builtin.set_fact:
+    zk_vm_networks:
+      - name: virbr0
+        netplan:
+          addresses: [192.168.122.101/24]
+  when: inventory_hostname in groups['zk_vms']
+
+- ansible.builtin.import_role:
+    name: karlivory.zk.build_facts
+- ansible.builtin.import_role:
+    name: karlivory.zk.provision_vms
+
+- name: Assert domain xml has new network
+  command: virsh dumpxml {{ zk_vm_name }}
+  register: vm_xml
+  delegate_to: "{{ zk_vm_kvm_hosts }}"
+  changed_when: false
+  when: inventory_hostname in groups['zk_vms']
+- assert:
+    that:
+      - "'virbr0' in vm_xml.stdout"
+    fail_msg: "Network is not present in domain XML"
+  when: inventory_hostname in groups['zk_vms']
+
+- name: Update vm networks var (add network)
+  ansible.builtin.set_fact:
+    zk_vm_networks:
+      - name: virbr0
+        netplan:
+          addresses:
+            - 192.168.122.100/24
+            - 192.168.122.101/24
+  when: inventory_hostname in groups['zk_vms']
+
+- ansible.builtin.import_role:
+    name: karlivory.zk.build_facts
+- ansible.builtin.import_role:
+    name: karlivory.zk.provision_vms
+
+- name: Verify vm ping responds (address 1)
+  delegate_to: localhost
+  command: ping 192.168.122.100 -c 1 -W 1
+  register: ping_vm
+  failed_when: ping_vm.rc != 0
+  retries: 30
+  delay: 1
+  until: ping_vm.rc == 0
+
+- name: Verify vm ping responds (address 2)
+  delegate_to: localhost
+  command: ping 192.168.122.101 -c 1 -W 1
+  register: ping_vm
+  failed_when: ping_vm.rc != 0
+  retries: 30
+  delay: 1
+  until: ping_vm.rc == 0
+
+- name: Reboot vm
+  ansible.builtin.reboot:
+  become: true
+  when: inventory_hostname in groups['zk_vms']
+
+- name: Verify vm ping responds (address 1)
+  delegate_to: localhost
+  command: ping 192.168.122.100 -c 1 -W 1
+  register: ping_vm
+  failed_when: ping_vm.rc != 0
+  retries: 30
+  delay: 1
+  until: ping_vm.rc == 0
+
+- name: Verify vm ping responds (address 2)
+  delegate_to: localhost
+  command: ping 192.168.122.101 -c 1 -W 1
+  register: ping_vm
+  failed_when: ping_vm.rc != 0
+  retries: 30
+  delay: 1
+  until: ping_vm.rc == 0
