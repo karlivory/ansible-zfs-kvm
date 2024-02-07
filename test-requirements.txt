@@ -1,5 +1,4 @@
 ansible==9.2.0
-dacite==1.8.1
 pyyaml==6.0.1
 lxml==5.1.0
 pylint==3.0.3

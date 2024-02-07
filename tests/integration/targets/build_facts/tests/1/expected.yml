@@ -10,8 +10,7 @@ testkvm:
           size: 10G
           zfs:
             properties:
-              compression: 'off'
-              setuid: 'on'
+              compression: lz4
               snapdev: hidden
               volblocksize: 128k
               volsize: 10G
@@ -21,7 +20,7 @@ testkvm:
           size: 1G
           zfs:
             properties:
-              compression: lz4
+              compression: 'off'
               snapdev: hidden
               volblocksize: 128k
               volsize: 1G

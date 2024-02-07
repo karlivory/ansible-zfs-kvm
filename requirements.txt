@@ -1,4 +1,3 @@
 ansible
-dacite
 pyyaml
 lxml

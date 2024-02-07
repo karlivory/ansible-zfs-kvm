@@ -32,18 +32,13 @@ all:
             - name: "{{ zk_vm_name }}-root"
               dev: vda
               size: 10G
-              zfs:
-                zvol_parent: zroot/zk
-                properties:
-                  compression: "off"
-                  setuid: "on"
             - name: "{{ zk_vm_name }}-data"
               dev: vdb
               size: 1G
               zfs:
                 zvol_parent: dpool/data
                 properties:
-                  compression: "lz4"
+                  compression: "off"
           zk_vm_networks:
             - name: virbr0
               netplan:

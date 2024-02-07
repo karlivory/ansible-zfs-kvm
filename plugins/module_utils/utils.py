@@ -1,9 +1,8 @@
-from dataclasses import MISSING, asdict, dataclass, field, fields, is_dataclass
+from dataclasses import MISSING, dataclass, field, fields, is_dataclass
 from typing import (Any, Callable, Dict, List, Optional, Type, TypeVar, Union,
-                    cast)
+                    cast, get_args, get_origin)
 
 from ansible.module_utils.basic import AnsibleModule
-from dacite import from_dict
 
 
 @dataclass
@@ -18,6 +17,54 @@ T = TypeVar("T")
 
 
 class Utils:
+    @staticmethod
+    def dataclass_from_dict(dclass: Type[T], d: dict) -> T:
+        ctor_args = {}
+        for dataclass_field in fields(dclass):
+            field_name = dataclass_field.name
+            field_value = d.get(field_name, MISSING)
+
+            if field_value is MISSING or field_value is None:
+                if dataclass_field.default is not MISSING:
+                    ctor_args[field_name] = dataclass_field.default
+                elif dataclass_field.default_factory is not MISSING:
+                    ctor_args[field_name] = dataclass_field.default_factory()
+                else:
+                    ctor_args[field_name] = None
+                continue
+
+            field_type = dataclass_field.type
+            origin = get_origin(field_type)
+            args = get_args(field_type)
+
+            # list for Python 3.9 or newer
+            if origin in (list, List):
+                inner_type = args[0]
+                ctor_args[field_name] = []
+                for item in field_value:
+                    if is_dataclass(inner_type):
+                        ctor_args[field_name].append(
+                            Utils.dataclass_from_dict(inner_type, item)
+                        )
+                    else:
+                        ctor_args[field_name].append(item)
+            elif origin in (Union, Optional):
+                non_none_types = [arg for arg in args if arg is not type(None)]
+                if non_none_types and is_dataclass(non_none_types[0]):
+                    inner_type = non_none_types[0]
+                    ctor_args[field_name] = Utils.dataclass_from_dict(
+                        inner_type, field_value
+                    )
+                else:
+                    ctor_args[field_name] = field_value
+            else:
+                ctor_args[field_name] = (
+                    Utils.dataclass_from_dict(field_type, field_value)
+                    if is_dataclass(field_type)
+                    else field_value
+                )
+        return dclass(**ctor_args)
+
     @staticmethod
     def dict_merge(
         arg1: Optional[dict[str, Any]],
@@ -34,27 +81,6 @@ class Utils:
         return merged
 
     @staticmethod
-    def dataclass_merge(
-        arg1: Optional[T], arg2: Optional[T], data_class: Type[T]
-    ) -> Optional[T]:
-        """
-        Merge arg2 fields into arg1. arg2 None fields get ignored. Not a deep merge!
-        """
-        arg1_dict = {}
-        if arg1:
-            assert is_dataclass(arg1)
-            arg1_dict = asdict(arg1)
-        arg2_dict = {}
-        if arg2:
-            assert is_dataclass(arg2)
-            arg2_dict = asdict(arg2)
-        arg2_dict = {k: v for k, v in arg2_dict.items() if v is not None}
-        merged = {**arg1_dict, **arg2_dict}
-        if merged == {}:
-            return None
-        return from_dict(data_class, data=merged)
-
-    @staticmethod
     def run_module(
         args_class: Type[T], run: Callable[[AnsibleModule, T], ModuleResult]
     ) -> None:
@@ -63,7 +89,7 @@ class Utils:
         module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=True)
 
         params_dict = cast(Dict[str, Any], module.params)
-        args: T = from_dict(data_class=args_class, data=params_dict)
+        args: T = Utils.dataclass_from_dict(args_class, params_dict)
 
         try:
             result = run(module, args)
