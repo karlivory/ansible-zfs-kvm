@@ -32,7 +32,7 @@
     - name: Create domain libvirt xml template
       become: true
       ansible.builtin.template:
-        src: template.xml.j2
+        src: domain.xml.j2
         dest: "{{ vm_tmp_dir }}/vm.xml"
 
     - name: Virsh define domain from libvirt xml template

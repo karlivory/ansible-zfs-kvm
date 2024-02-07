@@ -32,7 +32,7 @@
   become: true
   when: not vm_has_disk
   ansible.builtin.template:
-    src: ./disk.xml.j2
+    src: disk.xml.j2
     dest: "{{ tmp_disk_xml_path }}"
 
 - name: Attach disk to domain

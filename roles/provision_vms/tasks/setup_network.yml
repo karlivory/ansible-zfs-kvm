@@ -22,7 +22,7 @@
   become: true
   when: not vm_has_nic
   ansible.builtin.template:
-    src: ./define_domain/nic.xml.j2
+    src: nic.xml.j2
     dest: "{{ tmp_nic_xml_path }}"
 
 - name: Attach nic to vm
