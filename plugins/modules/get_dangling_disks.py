@@ -1,11 +1,11 @@
 #!/usr/bin/python
+import xml.etree.ElementTree as ET
 from dataclasses import asdict, dataclass
 from typing import List
 
 from ansible_collections.karlivory.zk.plugins.module_utils.model import Disk
 from ansible_collections.karlivory.zk.plugins.module_utils.utils import (
     ModuleResult, Utils)
-from lxml import etree  # type: ignore
 
 
 @dataclass
@@ -26,8 +26,7 @@ class Output:
 
 def get_dangling_disks(_, args: ModuleArgs) -> ModuleResult:
     result = []
-    # Parse the XML string
-    root = etree.fromstring(args.dumpxml)  # pylint: disable=c-extension-no-member
+    root = ET.fromstring(args.dumpxml)
 
     defined_disks = set(x.dev for x in args.disks)
     for disk in root.findall(".//devices/disk[@device='disk']/target"):

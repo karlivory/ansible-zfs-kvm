@@ -1,4 +1,5 @@
 #!/usr/bin/python
+import xml.etree.ElementTree as ET
 from dataclasses import asdict, dataclass
 from typing import List
 
@@ -6,7 +7,6 @@ from ansible_collections.karlivory.zk.plugins.module_utils.model import \
     VMNetwork
 from ansible_collections.karlivory.zk.plugins.module_utils.utils import (
     ModuleResult, Utils)
-from lxml import etree  # type: ignore
 
 
 @dataclass
@@ -35,11 +35,9 @@ def bus_string_to_int(n: str) -> int:
 
 def get_dangling_nics(_, args: ModuleArgs) -> ModuleResult:
     result = []
-    # Parse the XML string
-    root = etree.fromstring(args.dumpxml)  # pylint: disable=c-extension-no-member
+    root = ET.fromstring(args.dumpxml)
 
     defined_bus_numbers = [n.nic_bus for n in args.networks]
-    # Extract NIC info from the XML
     for interface in root.findall(".//devices/interface"):
         address = interface.find("address")
         assert address is not None, f"ERROR! interface {str(interface)} address is None"
