@@ -12,16 +12,15 @@
       loop: "{{ groups['zk_kvm_hosts'] }}"
       run_once: true
 
-    - karlivory.zk.print_yaml:
-        data: "{{ zk }}"
+    - ansible.builtin.set_fact:
+        yaml_print: "{{ zk | to_nice_yaml(indent=2, sort_keys=true) }}"
       delegate_to: localhost
       connection: local
-      register: yaml_print
 
     - name: Write zk variable to a tmp file
       ansible.builtin.copy:
         dest: /tmp/ansible_it_build_facts_{{ test_no }}.yml
-        content: "{{ yaml_print.output }}"
+        content: "{{ yaml_print }}"
       delegate_to: localhost
       connection: local
 

@@ -29,12 +29,12 @@
   become: true
   when: not vm_has_nic
   ansible.builtin.command: virsh attach-device {{ vm.name }} {{ tmp_nic_xml_path }} --persistent
-- karlivory.zk.print_yaml:
-    data: "{{ network.netplan }}"
+
+- ansible.builtin.set_fact:
+    netplan_yaml_print: "{{ network.netplan | to_nice_yaml(indent=2, sort_keys=true) }}"
   when: network.netplan
   delegate_to: localhost
   connection: local
-  register: netplan_yaml_print
 
 - name: Update vm netplan
   become: true
@@ -52,7 +52,7 @@
 
       tee "${CFG_FILE}" <<EOF
       # THIS IS FILE MANAGED BY ANSIBLE! DO NOT EDIT!
-      {{ netplan_yaml_print.output | default('') }}
+      {{ netplan_yaml_print | default('') }}
       EOF
 
       NEW_SHA1SUM=$(sha1sum ${CFG_FILE} | cut -d " " -f1)
