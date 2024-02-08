@@ -118,7 +118,7 @@
   when: build_image[image.name] | default(false)
 
 - name: Write images.json
-  when: current_images_json != zk_kvm.images
+  when: (not images_stat.stat.exists) or (current_images_json != zk_kvm.images)
   become: true
   ansible.builtin.copy:
     content: "{{ zk_kvm.images | to_nice_json }}"
