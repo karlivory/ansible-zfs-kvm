@@ -3,13 +3,13 @@ from typing import Any, List, Optional
 
 
 @dataclass
-class Images:
+class Image:
     name: str
     url: str
     checksum: str
     firstboot_script: str
-    pre_firstboot_uninstall_packages: str
-    pre_firstboot_install_packages: str
+    uninstall_packages: str
+    install_packages: str
 
 
 @dataclass
@@ -132,7 +132,7 @@ class VM:
 class ZkKVMHost:
     ansible_host: str
     zk_kvm_vms: List[ZkVM]
-    zk_kvm_images: List[Images]
+    zk_kvm_images: List[Image]
     zk_kvm_data_dir: str
     zk_kvm_memballoon_mem_limit_mb: int
     zk_kvm_networks: List[ZkVMNetwork]
@@ -141,7 +141,7 @@ class ZkKVMHost:
 @dataclass
 class KVMHost:
     ansible_host: str
-    images: List[Images]
+    images: List[Image]
     data_dir: str
     vms: List[VM]
     memballoon_mem_limit_mb: int

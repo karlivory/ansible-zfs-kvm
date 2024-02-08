@@ -1,7 +1,0 @@
----
-# vars: kvm_host, image
-
-- ansible.builtin.set_fact:
-    base_image_download_path: "{{ repository_dir }}/jammy-server-cloudimg-amd64.img"
-
-- ansible.builtin.import_tasks: ../build/debian.yml

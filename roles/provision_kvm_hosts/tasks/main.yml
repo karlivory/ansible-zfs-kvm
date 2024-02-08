@@ -6,6 +6,6 @@
   run_once: true
 
 - name: Provision kvm_host
-  ansible.builtin.include_tasks: ./00_provision_kvm_host.yml
+  ansible.builtin.include_tasks: ./provision_kvm_host.yml
   when:
     - inventory_hostname in groups['zk_kvm_hosts']
