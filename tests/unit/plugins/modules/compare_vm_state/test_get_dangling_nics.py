@@ -1,9 +1,9 @@
 from dataclasses import asdict
 
-from ansible_collections.karlivory.zk.plugins.module_utils.model import \
-    VMNetwork
-from ansible_collections.karlivory.zk.plugins.modules.get_dangling_nics import (
-    DanglingNic, ModuleArgs, Output, get_dangling_nics)
+from ansible_collections.karlivory.zk.plugins.module_utils.model import (
+    Disk, VMNetwork)
+from ansible_collections.karlivory.zk.plugins.modules.compare_vm_state import (
+    DanglingNic, ModuleArgs, Output, VMXMLProcessor)
 
 
 def test_no_dangling_nics():
@@ -41,10 +41,10 @@ def test_no_dangling_nics():
   </devices>
 </domain>
     """
-    expected_result = Output(nics=[])
-    result = get_dangling_nics(None, ModuleArgs(dumpxml, networks))
-
-    assert result.output == asdict(expected_result)
+    xml_processor = VMXMLProcessor(dumpxml)
+    expected_result = []
+    result = xml_processor.get_dangling_nics(networks)
+    assert result == expected_result
 
 
 def test_one_dangling_nic():
@@ -73,9 +73,9 @@ def test_one_dangling_nic():
   </devices>
 </domain>
     """
-    expected_result = Output(
-        nics=[DanglingNic(mac="52:54:00:00:93:8c", nic_type="bridge", nic_bus=8)]
-    )
-    result = get_dangling_nics(None, ModuleArgs(dumpxml, networks))
-
-    assert result.output == asdict(expected_result)
+    expected_result = [
+        DanglingNic(mac="52:54:00:00:93:8c", nic_type="bridge", nic_bus=8)
+    ]
+    xml_processor = VMXMLProcessor(dumpxml)
+    result = xml_processor.get_dangling_nics(networks)
+    assert result == expected_result

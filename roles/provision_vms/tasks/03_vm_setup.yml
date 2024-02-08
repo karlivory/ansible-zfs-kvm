@@ -1,7 +1,7 @@
 ---
 # host: kvm_host
 # vars: vm, zk_kvm
-#
+
 - ansible.builtin.set_fact:
     vm_tmp_dir: "{{ zk_kvm.data_dir }}/tmp/{{ vm.name }}"
 
@@ -11,24 +11,13 @@
   register: vm_virsh_dumpxml
   changed_when: false
 
-- when: vm.prune_dangling_disks
-  ansible.builtin.include_tasks: ./prune_dangling_disks.yml
-- name: Set up disks
-  ansible.builtin.include_tasks: ./setup_disk/main.yml
-  loop: "{{ vm.disks }}"
-  loop_control:
-    loop_var: disk
-    index_var: disk_idx
+- name: Compare vm state
+  karlivory.zk.compare_vm_state:
+    dumpxml: "{{ vm_virsh_dumpxml.stdout }}"
+    vm: "{{ vm }}"
+  register: vm_diff
 
-- ansible.builtin.include_tasks: ./setup_users.yml
-- when: vm.prune_dangling_networks
-  ansible.builtin.include_tasks: ./prune_dangling_networks.yml
-- ansible.builtin.include_tasks: ./setup_network.yml
-  loop: "{{ vm.networks }}"
-  loop_control:
-    loop_var: network
-
-- name: Set vm hostname
+- name: Set vm hostname, ensure /etc/hosts has entry
   become: true
   when: vm.hostname | length > 0
   karlivory.zk.qemu_guest_run_cmd:
@@ -39,31 +28,25 @@
         hostnamectl set-hostname "{{ vm.hostname }}"
         echo "HOSTNAME_CHANGED"
       fi
+      if ! grep -q "127.0.0.1 {{ vm.hostname }}" /etc/hosts; then
+        echo "127.0.0.1 {{ vm.hostname }}" >> /etc/hosts
+        echo "HOSTNAME_ENTRY_ADDED"
+      fi
     timeout: 10
     poll: !!float "0.1"
   register: hostname_result
-  changed_when: "'HOSTNAME_CHANGED' in hostname_result.output.stdout"
+  changed_when: "'HOSTNAME_CHANGED' in hostname_result.output.stdout or 'HOSTNAME_ENTRY_ADDED' in hostname_result.output.stdout"
 
-############################ memory ###################################
-- ansible.builtin.set_fact:
-    vm_current_memory_in_mb: "{{ (vm_virsh_dumpxml.stdout | regex_search('.*currentMemory.*KiB.*>(.*)</.*currentMemory>.*', '\\1') | first | int) / 1024 }}"
-
-- ansible.builtin.assert:
-    that: (vm_current_memory_in_mb | int) > 0
-    fail_msg: "Something went wrong when trying to read currentMemory of {{ vm.name }}, value is: {{ vm_current_memory_in_mb }}"
+- ansible.builtin.include_tasks: ./disks/main.yml
+- ansible.builtin.include_tasks: ./networks/main.yml
+- ansible.builtin.include_tasks: ./users/main.yml
 
 - name: Update vm memory
   become: true
-  when: (vm_current_memory_in_mb | int) != (vm.memory_mb | int)
+  when: vm_diff.output.update_memory
   ansible.builtin.command: virsh setmem --domain "{{ vm.name }}" "{{ vm.memory_mb }}M" --live --config
-- ansible.builtin.set_fact:
-    vm_current_vcpus: "{{ vm_virsh_dumpxml.stdout | regex_search('.*vcpu.*>(.*)</.*vcpu>.*', '\\1') | first }}"
-
-- ansible.builtin.assert:
-    that: (vm_current_vcpus | int) > 0
-    fail_msg: "Something went wrong when trying to read vcpu count of {{ vm.name }}, value is: {{ vm_current_vcpus }}"
 
 - name: Update vm vcpus (needs restart)
   become: true
-  when: (vm_current_vcpus | int) != (vm.vcpus | int)
+  when: vm_diff.output.update_vcpus
   ansible.builtin.shell: virsh setvcpus --domain "{{ vm.name }}" "{{ vm.vcpus }}" --maximum --config && virsh setvcpus --domain "{{ vm.name }}" "{{ vm.vcpus }}" --config

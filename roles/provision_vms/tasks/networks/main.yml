@@ -1,45 +1,29 @@
 ---
-# host: kvm_host
-# vars: vm, vm_virsh_dumpxml
-
-- karlivory.zk.get_dangling_nics:
-    dumpxml: "{{ vm_virsh_dumpxml.stdout }}"
-    networks: "{{ vm.networks }}"
-  register: dangling_nics
-  delegate_to: localhost
-  connection: local
-
 - name: Detach dangling NICs
+  when: vm.prune_dangling_networks
   ansible.builtin.command: virsh detach-interface --domain "{{ vm.name }}" --type "{{ item.nic_type }}" --mac "{{ item.mac }}" --persistent
-  loop: "{{ dangling_nics.output.nics }}"
+  loop: "{{ vm_diff.output.dangling_nics }}"
 
-# TODO: Improve rollback workflow:
-# * netplan apply (if fail: exit, no need to proceed)
-# * detach dangling nics
-# * mv (.bak) netplan cfgs
-# * netplan apply
-# * if success: rm .baks
-# * if fail: mv .baks back, reattach interfaces, exit (internal state error)
 - name: Remove any dangling netplan
-  when: dangling_nics.output.nics | length > 0
+  when: vm.prune_dangling_networks and vm_diff.output.dangling_nics | length > 0
   karlivory.zk.qemu_guest_run_cmd:
     domain: "{{ vm.name }}"
     command: |
       #!/bin/bash
 
-      {% for nic in dangling_nics.output.nics %}
+      {% for nic in vm_diff.output.dangling_nics %}
       mv "/etc/netplan/enp{{ nic.nic_bus }}s0-netcfg.yaml" "/etc/netplan/enp{{ nic.nic_bus }}s0-netcfg.yaml.bak"
       {% endfor %}
 
       if ! netplan apply; then
         echo "NETPLAN_APPLY_FAILED"
         echo "Rolling back previous configuration..."
-        {% for nic in dangling_nics.output.nics %}
+        {% for nic in vm_diff.output.dangling_nics %}
         mv "/etc/netplan/enp{{ nic.nic_bus }}s0-netcfg.yaml.bak" "/etc/netplan/enp{{ nic.nic_bus }}s0-netcfg.yaml"
         {% endfor %}
         exit 1
       else
-        {% for nic in dangling_nics.output.nics %}
+        {% for nic in vm_diff.output.dangling_nics %}
         rm "/etc/netplan/enp{{ nic.nic_bus }}s0-netcfg.yaml.bak"
         {% endfor %}
       fi
@@ -50,3 +34,13 @@
     - "'NETPLAN_APPLY_FAILED' in run_cmd.output.stdout | default('')"
   changed_when:
     - "'NETPLAN_APPLY_SUCCESS' in run_cmd.output.stdout | default('')"
+
+- ansible.builtin.include_tasks: ./add_nic.yml
+  loop: "{{ vm_diff.output.nics_to_add }}"
+  loop_control:
+    loop_var: network
+
+- ansible.builtin.include_tasks: ./networks/update_netplan.yml
+  loop: "{{ vm.networks }}"
+  loop_control:
+    loop_var: network

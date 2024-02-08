@@ -5,11 +5,8 @@
   connection: local
   run_once: true
 
-###########################################################################################################3
-## main
-
 - name: Gather info from kvm host
-  ansible.builtin.include_tasks: ./01_gather_info_kvm.yml
+  ansible.builtin.include_tasks: ./01_get_info.yml
   when:
     - inventory_hostname in groups['zk_kvm_hosts']
 

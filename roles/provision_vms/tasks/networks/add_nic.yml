@@ -1,0 +1,21 @@
+---
+- ansible.builtin.set_fact:
+    tmp_nic_xml_path: "{{ vm_tmp_dir }}/{{ network.name }}-nic.xml"
+
+- name: Copy over network device file (*-nic.xml)
+  become: true
+  ansible.builtin.template:
+    src: nic.xml.j2
+    dest: "{{ tmp_nic_xml_path }}"
+
+- name: Attach nic to vm
+  become: true
+  ansible.builtin.command: virsh attach-device {{ vm.name }} {{ tmp_nic_xml_path }} --persistent
+
+- ansible.builtin.set_fact:
+    netplan_yaml_print: "{{ network.netplan | to_nice_yaml(indent=2, sort_keys=true) }}"
+  when: network.netplan
+  delegate_to: localhost
+  connection: local
+
+

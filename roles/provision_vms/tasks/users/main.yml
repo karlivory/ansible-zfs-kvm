@@ -1,6 +1,6 @@
 ---
 # host: kvm_host
-# vars: vm, network
+# vars: vm
 
 - name: Update users
   when: vm.users | length > 0
@@ -45,10 +45,6 @@
       USER_SSH_DIR="$(getent passwd "${username}" | cut -d: -f6)/.ssh"
       mkdir -p "$USER_SSH_DIR"
       AUTH_KEYS_FILE="$USER_SSH_DIR/authorized_keys"
-
-      echo "--------------------------"
-      echo $AUTH_KEYS_FILE
-      echo $(cat $AUTH_KEYS_FILE)
 
       if [ -f "${AUTH_KEYS_FILE}" ]; then
         OLD_SHA1SUM=$(sha1sum ${AUTH_KEYS_FILE} | cut -d " " -f1)

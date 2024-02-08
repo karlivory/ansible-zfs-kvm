@@ -1,0 +1,15 @@
+---
+# host: kvm_host
+# vars: vm, vm_diff
+
+- name: Detach dangling disks
+  when: vm.prune_dangling_disks
+  ansible.builtin.command: virsh detach-disk --domain "{{ vm.name }}" --target "{{ item.dev }}" --persistent
+  loop: "{{ vm_diff.output.dangling_disks }}"
+
+- name: Set up disks
+  ansible.builtin.include_tasks: ../setup_disk/main.yml
+  loop: "{{ vm_diff.output.disks_to_add }}"
+  loop_control:
+    loop_var: disk
+
