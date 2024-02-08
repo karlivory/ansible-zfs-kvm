@@ -25,7 +25,7 @@ testkvm:
           volblocksize: 128k
           volsize: 1G
         zvol_parent: dpool/data
-    hostname: ''
+    hostname: testvm1
     image: debian11
     memory_mb: 3000
     name: testvm1
