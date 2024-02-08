@@ -2,9 +2,11 @@
 - name: Build zk variable from inventory, validate against expected
   hosts: all
   gather_facts: false
-  roles:
-    - karlivory.zk.build_facts
   tasks:
+    - name: Run build_facts
+      ansible.builtin.import_role:
+        name: karlivory.zk.build_facts
+
     - ansible.builtin.set_fact:
         zk: "{{ zk | default({}) | combine({item: hostvars[item].zk_kvm}) }}"
       delegate_to: localhost
@@ -13,14 +15,37 @@
       run_once: true
 
     - ansible.builtin.set_fact:
-        yaml_print: "{{ zk | to_nice_yaml(indent=2, sort_keys=true) }}"
+        yaml_print1: "{{ zk | to_nice_yaml(indent=2, sort_keys=true) }}"
       delegate_to: localhost
       connection: local
 
-    - name: Write zk variable to a tmp file
+    - name: Write zk1 variable to a tmp file
       ansible.builtin.copy:
         dest: /tmp/ansible_it_build_facts_{{ test_no }}.yml
-        content: "{{ yaml_print }}"
+        content: "{{ yaml_print1 }}"
+      delegate_to: localhost
+      connection: local
+
+    - name: Run build_facts again
+      ansible.builtin.import_role:
+        name: karlivory.zk.build_facts
+
+    - ansible.builtin.set_fact:
+        zk: "{{ zk | default({}) | combine({item: hostvars[item].zk_kvm}) }}"
+      delegate_to: localhost
+      connection: local
+      loop: "{{ groups['zk_kvm_hosts'] }}"
+      run_once: true
+
+    - ansible.builtin.set_fact:
+        yaml_print2: "{{ zk | to_nice_yaml(indent=2, sort_keys=true) }}"
+      delegate_to: localhost
+      connection: local
+
+    - name: Assert build_facts idempotence
+      ansible.builtin.assert:
+        that: yaml_print1 == yaml_print2
+        fail_msg: build_facts idempotence test failed!
       delegate_to: localhost
       connection: local
 
