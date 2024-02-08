@@ -10,6 +10,7 @@ zk_kvm_images:
   - name: debian12
     url: https://cdimage.debian.org/images/cloud/bookworm/daily/latest/debian-12-generic-amd64-daily.qcow2
     checksum: sha512:https://cdimage.debian.org/images/cloud/bookworm/daily/latest/SHA512SUMS
+    build_template: debian
     uninstall_packages: cloud-init
     install_packages: netplan.io,qemu-guest-agent,ncurses-term
     firstboot_script: |
@@ -25,6 +26,7 @@ zk_kvm_images:
   - name: debian11
     url: https://cdimage.debian.org/images/cloud/bullseye/daily/latest/debian-11-generic-amd64-daily.qcow2
     checksum: sha512:https://cdimage.debian.org/images/cloud/bullseye/daily/latest/SHA512SUMS
+    build_template: debian
     uninstall_packages: cloud-init
     install_packages: netplan.io,qemu-guest-agent,ncurses-term
     firstboot_script: |
@@ -40,6 +42,7 @@ zk_kvm_images:
   - name: ubuntu2204
     url: https://cloud-images.ubuntu.com/daily/server/jammy/current/jammy-server-cloudimg-amd64.img
     checksum: sha256:https://cloud-images.ubuntu.com/jammy/current/SHA256SUMS
+    build_template: debian
     uninstall_packages: cloud-init
     install_packages: netplan.io,qemu-guest-agent
     firstboot_script: |

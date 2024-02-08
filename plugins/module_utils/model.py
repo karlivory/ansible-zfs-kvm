@@ -7,6 +7,7 @@ class Image:
     name: str
     url: str
     checksum: str
+    build_template: str
     firstboot_script: str
     uninstall_packages: str
     install_packages: str

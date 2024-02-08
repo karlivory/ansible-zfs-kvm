@@ -107,7 +107,7 @@
     loop_var: image
 
 - name: Build golden image
-  ansible.builtin.include_tasks: ./build_image.yml
+  ansible.builtin.include_tasks: ./build_templates/{{ image.build_template }}.yml
   vars:
     golden_image_path: "{{ images_dir }}/{{ image.name }}.qcow2"
     intermediate_image_path: "{{ tmp_dir }}/{{ image.name }}-intermediate-{{ current_timestamp }}.qcow2"
