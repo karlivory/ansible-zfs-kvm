@@ -29,7 +29,9 @@
     - inventory_hostname in groups['zk_vms']
 
 - ansible.builtin.set_fact:
-    zk_kvm_vms: "{{ zk_kvm_vms | default([]) + [hostvars[item].zk_vm] }}"
+    zk_kvm_vms: "{{ [] }}"
+- ansible.builtin.set_fact:
+    zk_kvm_vms: "{{ zk_kvm_vms  + [hostvars[item].zk_vm] }}"
   delegate_to: localhost
   connection: local
   loop: "{{ groups['zk_vms'] }}"
