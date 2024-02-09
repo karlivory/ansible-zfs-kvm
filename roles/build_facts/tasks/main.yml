@@ -36,7 +36,7 @@
   connection: local
   loop: "{{ groups['zk_vms'] }}"
   when:
-    - inventory_hostname in hostvars[item].zk_kvm_host_list
+    - inventory_hostname in hostvars[item].zk_kvm_host_list | default([])
 
 - karlivory.zk.build_kvm_config:
     ansible_host: "{{ ansible_host }}"
