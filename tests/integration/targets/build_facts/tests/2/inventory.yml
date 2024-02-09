@@ -1,0 +1,133 @@
+---
+zk_vms:
+  children:
+    vmgroup1:
+    vmgroup2:
+    vmgroup3:
+
+zk_kvm_hosts:
+  children:
+    kvmgroup1:
+    kvmgroup2:
+
+all:
+  vars:
+    zk_kvm_memballoon_mem_limit_mb: 8000
+    zk_vm_disk_default_zvol_parent: zroot/zk
+    zk_vm_disks:
+      - name: "{{ zk_vm_name }}-root"
+        dev: vda
+        size: 10G
+    zk_vm_disk_default_zfs_properties: {}
+    zk_vm_users: []
+    zk_kvm_images: []
+
+vmgroup1:
+  vars:
+    zk_vm_kvm_hosts: kvm1
+    zk_vm_image: debian11
+    zk_vm_memory_mb: 3000
+    zk_vm_vcpus: 1
+  hosts:
+    vm1:
+      zk_vm_name: vm1
+      zk_vm_networks:
+        - name: net1
+          netplan:
+            addresses: [10.0.101.101/24]
+    vm2:
+      zk_vm_name: vm2
+      zk_vm_networks:
+        - name: net1
+          netplan:
+            addresses: [10.0.101.102/24]
+    vm3:
+      zk_vm_name: vm3
+      zk_vm_image: ubuntu2204
+      zk_vm_networks:
+        - name: net1
+          netplan:
+            addresses: [10.0.101.103/24]
+
+vmgroup2:
+  vars:
+    zk_vm_kvm_hosts: kvm3
+    zk_vm_image: debian11
+    zk_vm_memory_mb: 3000
+    zk_vm_vcpus: 1
+  hosts:
+    vm4:
+      zk_vm_name: vm4
+      zk_vm_networks:
+        - name: net1
+          netplan:
+            addresses: [10.0.101.105/24]
+        - name: net2
+          netplan:
+            addresses: [10.0.102.105/24]
+
+vmgroup3:
+  vars:
+    zk_vm_kvm_hosts: kvmgroup1
+    zk_vm_image: debian12
+    zk_vm_memory_mb: 4000
+    zk_vm_vcpus: 2
+  hosts:
+    vm5:
+      zk_vm_name: vm5
+      zk_vm_networks:
+        - name: net1
+          netplan:
+            dhcp4: true
+
+kvmgroup1:
+  vars:
+    zk_kvm_data_dir: /zk-data1
+  hosts:
+    kvm1:
+      zk_kvm_networks:
+        - name: net1
+          subnet: 10.0.101.0/24
+          nic_type: bridge
+          nic_source: br1
+          nic_device_model: virtio
+          nic_bus: 10
+          netplan:
+            dhcp4: false
+            dhcp6: false
+    kvm2:
+      zk_kvm_networks:
+        - name: net1
+          subnet: 10.0.101.0/24
+          nic_type: bridge
+          nic_source: br1
+          nic_device_model: virtio
+          nic_bus: 10
+          netplan:
+            dhcp4: false
+            dhcp6: false
+
+kvmgroup2:
+  vars:
+    zk_kvm_data_dir: /zk-data2
+  hosts:
+    kvm3:
+      zk_kvm_networks:
+        - name: net1
+          subnet: 10.0.101.0/24
+          nic_type: bridge
+          nic_source: br1
+          nic_device_model: virtio
+          nic_bus: 10
+          netplan:
+            dhcp4: false
+            dhcp6: false
+        - name: net2
+          subnet: 10.0.102.0/24
+          nic_type: bridge
+          nic_source: br2
+          nic_device_model: virtio
+          nic_bus: 11
+          netplan:
+            dhcp4: false
+            dhcp6: false

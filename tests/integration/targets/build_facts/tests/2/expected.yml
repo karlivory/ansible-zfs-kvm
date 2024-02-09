@@ -1,0 +1,220 @@
+kvm1:
+  ansible_host: localhost
+  data_dir: /zk-data1
+  images: []
+  memballoon_mem_limit_mb: 8000
+  vms:
+  - disks:
+    - dev: vda
+      name: vm1-root
+      size: 10G
+      zfs:
+        properties:
+          volsize: 10G
+        zvol_parent: zroot/zk
+    hostname: vm1
+    image: debian11
+    memory_mb: 3000
+    name: vm1
+    networks:
+    - name: net1
+      netplan:
+        network:
+          ethernets:
+            enp10s0:
+              addresses:
+              - 10.0.101.101/24
+              dhcp4: false
+              dhcp6: false
+      nic_bus: 10
+      nic_device_model: virtio
+      nic_source: br1
+      nic_type: bridge
+      subnet: 10.0.101.0/24
+    prune_dangling_disks: true
+    prune_dangling_networks: true
+    qemu_machine_type: pc-q35-6.2
+    users: []
+    vcpus: 1
+  - disks:
+    - dev: vda
+      name: vm2-root
+      size: 10G
+      zfs:
+        properties:
+          volsize: 10G
+        zvol_parent: zroot/zk
+    hostname: vm2
+    image: debian11
+    memory_mb: 3000
+    name: vm2
+    networks:
+    - name: net1
+      netplan:
+        network:
+          ethernets:
+            enp10s0:
+              addresses:
+              - 10.0.101.102/24
+              dhcp4: false
+              dhcp6: false
+      nic_bus: 10
+      nic_device_model: virtio
+      nic_source: br1
+      nic_type: bridge
+      subnet: 10.0.101.0/24
+    prune_dangling_disks: true
+    prune_dangling_networks: true
+    qemu_machine_type: pc-q35-6.2
+    users: []
+    vcpus: 1
+  - disks:
+    - dev: vda
+      name: vm3-root
+      size: 10G
+      zfs:
+        properties:
+          volsize: 10G
+        zvol_parent: zroot/zk
+    hostname: vm3
+    image: ubuntu2204
+    memory_mb: 3000
+    name: vm3
+    networks:
+    - name: net1
+      netplan:
+        network:
+          ethernets:
+            enp10s0:
+              addresses:
+              - 10.0.101.103/24
+              dhcp4: false
+              dhcp6: false
+      nic_bus: 10
+      nic_device_model: virtio
+      nic_source: br1
+      nic_type: bridge
+      subnet: 10.0.101.0/24
+    prune_dangling_disks: true
+    prune_dangling_networks: true
+    qemu_machine_type: pc-q35-6.2
+    users: []
+    vcpus: 1
+  - disks:
+    - dev: vda
+      name: vm5-root
+      size: 10G
+      zfs:
+        properties:
+          volsize: 10G
+        zvol_parent: zroot/zk
+    hostname: vm5
+    image: debian12
+    memory_mb: 4000
+    name: vm5
+    networks:
+    - name: net1
+      netplan:
+        network:
+          ethernets:
+            enp10s0:
+              dhcp4: true
+              dhcp6: false
+      nic_bus: 10
+      nic_device_model: virtio
+      nic_source: br1
+      nic_type: bridge
+      subnet: 10.0.101.0/24
+    prune_dangling_disks: true
+    prune_dangling_networks: true
+    qemu_machine_type: pc-q35-6.2
+    users: []
+    vcpus: 2
+kvm2:
+  ansible_host: localhost
+  data_dir: /zk-data1
+  images: []
+  memballoon_mem_limit_mb: 8000
+  vms:
+  - disks:
+    - dev: vda
+      name: vm5-root
+      size: 10G
+      zfs:
+        properties:
+          volsize: 10G
+        zvol_parent: zroot/zk
+    hostname: vm5
+    image: debian12
+    memory_mb: 4000
+    name: vm5
+    networks:
+    - name: net1
+      netplan:
+        network:
+          ethernets:
+            enp10s0:
+              dhcp4: true
+              dhcp6: false
+      nic_bus: 10
+      nic_device_model: virtio
+      nic_source: br1
+      nic_type: bridge
+      subnet: 10.0.101.0/24
+    prune_dangling_disks: true
+    prune_dangling_networks: true
+    qemu_machine_type: pc-q35-6.2
+    users: []
+    vcpus: 2
+kvm3:
+  ansible_host: localhost
+  data_dir: /zk-data2
+  images: []
+  memballoon_mem_limit_mb: 8000
+  vms:
+  - disks:
+    - dev: vda
+      name: vm4-root
+      size: 10G
+      zfs:
+        properties:
+          volsize: 10G
+        zvol_parent: zroot/zk
+    hostname: vm4
+    image: debian11
+    memory_mb: 3000
+    name: vm4
+    networks:
+    - name: net1
+      netplan:
+        network:
+          ethernets:
+            enp10s0:
+              addresses:
+              - 10.0.101.105/24
+              dhcp4: false
+              dhcp6: false
+      nic_bus: 10
+      nic_device_model: virtio
+      nic_source: br1
+      nic_type: bridge
+      subnet: 10.0.101.0/24
+    - name: net2
+      netplan:
+        network:
+          ethernets:
+            enp11s0:
+              addresses:
+              - 10.0.102.105/24
+              dhcp4: false
+              dhcp6: false
+      nic_bus: 11
+      nic_device_model: virtio
+      nic_source: br2
+      nic_type: bridge
+      subnet: 10.0.102.0/24
+    prune_dangling_disks: true
+    prune_dangling_networks: true
+    qemu_machine_type: pc-q35-6.2
+    users: []
+    vcpus: 1

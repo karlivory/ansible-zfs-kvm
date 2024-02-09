@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-for i in $(seq 1 1); do
+for i in $(seq 1 2); do
   file_to_compare="/tmp/ansible_it_build_facts_$i.yml"
   expected_file="tests/$i/expected.yml"
 
