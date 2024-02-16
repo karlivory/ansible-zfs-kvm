@@ -58,8 +58,8 @@
 - name: Set fact for image changed status
   become: true
   set_fact:
-    image_changed_status: "{{ image_changed_status | default({}) | combine({item.image.name: item.changed}) }}"
-  loop: "{{ download_jobs.results }}"
+    image_changed_status: "{{ image_changed_status | default({}) | combine({item.item.image.name: item.changed}) }}"
+  loop: "{{ download_jobs_status.results }}"
 
 - name: Check whether images.json exists
   become: true
