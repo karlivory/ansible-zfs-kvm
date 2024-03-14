@@ -50,3 +50,15 @@
   become: true
   when: vm_diff.output.update_vcpus
   ansible.builtin.shell: virsh setvcpus --domain "{{ vm.name }}" "{{ vm.vcpus }}" --maximum --config && virsh setvcpus --domain "{{ vm.name }}" "{{ vm.vcpus }}" --config
+
+- name: Run post_setup_script for vm
+  become: true
+  when: vm.post_setup_script | length > 0
+  karlivory.zk.qemu_guest_run_cmd:
+    domain: "{{ vm.name }}"
+    command: "{{ vm.post_setup_script }}"
+    timeout: "{{ vm.post_setup_script_timeout }}"
+    poll: !!float "0.1"
+  register: cmd_result
+  changed_when: "'TASK_CHANGED' in cmd_result.output.stdout"
+  failed_when: "'TASK_FAILED' in cmd_result.output.stdout"

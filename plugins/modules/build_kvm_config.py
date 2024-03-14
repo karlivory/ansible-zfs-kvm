@@ -57,6 +57,8 @@ def vm_from_conf(vm: ZkVM) -> VM:
         prune_dangling_disks=vm.zk_vm_prune_dangling_disks,
         prune_dangling_networks=vm.zk_vm_prune_dangling_networks,
         users=users,
+        post_setup_script=vm.zk_vm_post_setup_script,
+        post_setup_script_timeout=vm.zk_vm_post_setup_script_timeout,
     )
 
 

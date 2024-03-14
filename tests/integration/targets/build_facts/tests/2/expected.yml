@@ -31,6 +31,8 @@ kvm1:
       nic_source: br1
       nic_type: bridge
       subnet: 10.0.101.0/24
+    post_setup_script: ''
+    post_setup_script_timeout: 10
     prune_dangling_disks: true
     prune_dangling_networks: true
     qemu_machine_type: pc-q35-6.2
@@ -63,6 +65,8 @@ kvm1:
       nic_source: br1
       nic_type: bridge
       subnet: 10.0.101.0/24
+    post_setup_script: ''
+    post_setup_script_timeout: 10
     prune_dangling_disks: true
     prune_dangling_networks: true
     qemu_machine_type: pc-q35-6.2
@@ -95,6 +99,8 @@ kvm1:
       nic_source: br1
       nic_type: bridge
       subnet: 10.0.101.0/24
+    post_setup_script: ''
+    post_setup_script_timeout: 10
     prune_dangling_disks: true
     prune_dangling_networks: true
     qemu_machine_type: pc-q35-6.2
@@ -125,6 +131,8 @@ kvm1:
       nic_source: br1
       nic_type: bridge
       subnet: 10.0.101.0/24
+    post_setup_script: ''
+    post_setup_script_timeout: 10
     prune_dangling_disks: true
     prune_dangling_networks: true
     qemu_machine_type: pc-q35-6.2
@@ -161,6 +169,8 @@ kvm2:
       nic_source: br1
       nic_type: bridge
       subnet: 10.0.101.0/24
+    post_setup_script: ''
+    post_setup_script_timeout: 10
     prune_dangling_disks: true
     prune_dangling_networks: true
     qemu_machine_type: pc-q35-6.2
@@ -213,6 +223,8 @@ kvm3:
       nic_source: br2
       nic_type: bridge
       subnet: 10.0.102.0/24
+    post_setup_script: ''
+    post_setup_script_timeout: 10
     prune_dangling_disks: true
     prune_dangling_networks: true
     qemu_machine_type: pc-q35-6.2

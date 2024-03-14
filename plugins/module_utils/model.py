@@ -109,6 +109,8 @@ class ZkVM:
     zk_vm_prune_dangling_networks: bool
     zk_vm_prune_dangling_disks: bool
     zk_vm_users: List[ZkVMUser]
+    zk_vm_post_setup_script: str
+    zk_vm_post_setup_script_timeout: int
     zk_vm_disk_default_zfs_properties: dict
     zk_vm_disk_default_zvol_parent: Optional[str]
 
@@ -126,6 +128,8 @@ class VM:
     prune_dangling_networks: bool
     prune_dangling_disks: bool
     users: List[VMUser]
+    post_setup_script: str
+    post_setup_script_timeout: int
     # disk_default_zfs_properties: dict
 
 
