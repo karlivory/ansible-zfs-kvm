@@ -5,7 +5,10 @@
   loop: "{{ vm_diff.output.dangling_nics }}"
 
 - name: Remove any dangling netplan
-  when: vm.prune_dangling_networks and vm_diff.output.dangling_nics | length > 0
+  when:
+    - vm.networks_netplan_enabled
+    - vm.prune_dangling_networks
+    - vm_diff.output.dangling_nics | length > 0
   karlivory.zk.qemu_guest_run_cmd:
     domain: "{{ vm.name }}"
     command: |

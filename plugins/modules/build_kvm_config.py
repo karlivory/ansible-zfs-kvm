@@ -51,6 +51,7 @@ def vm_from_conf(vm: ZkVM) -> VM:
         disks=vm.zk_vm_disks,
         image=vm.zk_vm_image,
         networks=[],
+        networks_netplan_enabled=vm.zk_vm_networks_netplan_enabled,
         memory_mb=vm.zk_vm_memory_mb,
         vcpus=vm.zk_vm_vcpus,
         qemu_machine_type=vm.zk_vm_qemu_machine_type,

@@ -6,6 +6,7 @@
 
 - name: Update vm netplan
   become: true
+  when: vm.networks_netplan_enabled
   karlivory.zk.qemu_guest_run_cmd:
     domain: "{{ vm.name }}"
     command: |

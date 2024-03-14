@@ -103,6 +103,7 @@ class ZkVM:
     zk_vm_disks: List[Disk]
     zk_vm_image: str
     zk_vm_networks: List[ZkVMNetwork]
+    zk_vm_networks_netplan_enabled: bool
     zk_vm_memory_mb: int
     zk_vm_vcpus: int
     zk_vm_qemu_machine_type: str
@@ -122,6 +123,7 @@ class VM:
     disks: List[Disk]
     image: str
     networks: List[VMNetwork]
+    networks_netplan_enabled: bool
     memory_mb: int
     vcpus: int
     qemu_machine_type: str

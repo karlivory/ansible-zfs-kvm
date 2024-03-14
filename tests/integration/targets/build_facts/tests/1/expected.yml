@@ -50,6 +50,7 @@ testkvm:
       nic_source: virbr0
       nic_type: bridge
       subnet: 192.168.122.0/24
+    networks_netplan_enabled: true
     post_setup_script: ''
     post_setup_script_timeout: 10
     prune_dangling_disks: true

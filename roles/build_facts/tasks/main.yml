@@ -6,6 +6,7 @@
       zk_vm_disks: "{{ zk_vm_disks }}"
       zk_vm_image: "{{ zk_vm_image }}"
       zk_vm_networks: "{{ zk_vm_networks }}"
+      zk_vm_networks_netplan_enabled: "{{ zk_vm_networks_netplan_enabled }}"
       zk_vm_memory_mb: "{{ zk_vm_memory_mb }}"
       zk_vm_vcpus: "{{ zk_vm_vcpus }}"
       zk_vm_qemu_machine_type: "{{ zk_vm_qemu_machine_type }}"
