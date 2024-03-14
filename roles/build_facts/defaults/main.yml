@@ -12,6 +12,23 @@ zk_kvm_images_download_timeout: 900
 zk_kvm_images_download_ignore_errors: false
 zk_kvm_images_download_only_required_images: true
 zk_kvm_images:
+  - name: rocky9
+    url: https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
+    # checksum: sha256:https://dl.rockylinux.org/pub/rocky/9/images/x86_64/CHECKSUM # invalid format
+    checksum: ""
+    virt_customize_run_command: 'echo SELINUX=disabled > /etc/sysconfig/selinux && sed -i "s/^BLOCK_RPCS=.*/BLOCK_RPCS=/" /etc/sysconfig/qemu-ga'
+    virt_customize_uninstall_packages: cloud-init
+    virt_customize_install_packages: qemu-guest-agent,NetworkManager-config-server
+  - name: opensuse_leap
+    url: https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.6/images/openSUSE-Leap-15.6.x86_64-NoCloud.qcow2
+    # checksum: sha256:https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.6/images/openSUSE-Leap-15.6.x86_64-NoCloud.qcow2.sha256 # wrong value
+    checksum: ""
+    virt_customize_uninstall_packages: cloud-init
+    virt_customize_install_packages: qemu-guest-agent
+    virt_customize_firstboot: |
+      #!/bin/bash
+      systemctl enable qemu-guest-agent && systemctl start qemu-guest-agent
+      growpart /dev/vda 1 && resize2fs /dev/vda1
   - name: debian12
     url: https://cdimage.debian.org/images/cloud/bookworm/daily/latest/debian-12-generic-amd64-daily.qcow2
     checksum: sha512:https://cdimage.debian.org/images/cloud/bookworm/daily/latest/SHA512SUMS
