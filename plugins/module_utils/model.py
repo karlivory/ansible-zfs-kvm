@@ -7,10 +7,11 @@ class Image:
     name: str
     url: str
     checksum: str
-    build_template: str
-    firstboot_script: str
-    uninstall_packages: str
-    install_packages: str
+    virt_customize_run_command: Optional[str]
+    virt_customize_firstboot: Optional[str]
+    virt_customize_firstboot_command: Optional[str]
+    virt_customize_uninstall_packages: Optional[str]
+    virt_customize_install_packages: Optional[str]
 
 
 @dataclass

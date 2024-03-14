@@ -8,15 +8,16 @@ zk_vm_users: []
 zk_vm_post_setup_script: ""
 zk_vm_post_setup_script_timeout: 10
 zk_kvm_networks: []
-zk_kvm_image_download_timeout: 900
+zk_kvm_images_download_timeout: 900
+zk_kvm_images_download_ignore_errors: false
+zk_kvm_images_download_only_required_images: true
 zk_kvm_images:
   - name: debian12
     url: https://cdimage.debian.org/images/cloud/bookworm/daily/latest/debian-12-generic-amd64-daily.qcow2
     checksum: sha512:https://cdimage.debian.org/images/cloud/bookworm/daily/latest/SHA512SUMS
-    build_template: debian
-    uninstall_packages: cloud-init
-    install_packages: netplan.io,qemu-guest-agent,ncurses-term
-    firstboot_script: |
+    virt_customize_uninstall_packages: cloud-init
+    virt_customize_install_packages: netplan.io,qemu-guest-agent,ncurses-term
+    virt_customize_firstboot: |
       #!/bin/bash
       DEBIAN_FRONTEND=noninteractive dpkg-reconfigure openssh-server
       /etc/init.d/ssh restart
@@ -29,10 +30,9 @@ zk_kvm_images:
   - name: debian11
     url: https://cdimage.debian.org/images/cloud/bullseye/daily/latest/debian-11-generic-amd64-daily.qcow2
     checksum: sha512:https://cdimage.debian.org/images/cloud/bullseye/daily/latest/SHA512SUMS
-    build_template: debian
-    uninstall_packages: cloud-init
-    install_packages: netplan.io,qemu-guest-agent,ncurses-term
-    firstboot_script: |
+    virt_customize_uninstall_packages: cloud-init
+    virt_customize_install_packages: netplan.io,qemu-guest-agent,ncurses-term
+    virt_customize_firstboot: |
       #!/bin/bash
       DEBIAN_FRONTEND=noninteractive dpkg-reconfigure openssh-server
       /etc/init.d/ssh restart
@@ -45,10 +45,9 @@ zk_kvm_images:
   - name: ubuntu2204
     url: https://cloud-images.ubuntu.com/daily/server/jammy/current/jammy-server-cloudimg-amd64.img
     checksum: sha256:https://cloud-images.ubuntu.com/jammy/current/SHA256SUMS
-    build_template: debian
-    uninstall_packages: cloud-init
-    install_packages: netplan.io,qemu-guest-agent
-    firstboot_script: |
+    virt_customize_uninstall_packages: cloud-init
+    virt_customize_install_packages: netplan.io,qemu-guest-agent
+    virt_customize_firstboot: |
       #!/bin/bash
       DEBIAN_FRONTEND=noninteractive dpkg-reconfigure openssh-server
       /etc/init.d/ssh restart

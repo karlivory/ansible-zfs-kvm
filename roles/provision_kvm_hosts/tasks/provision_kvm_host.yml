@@ -31,13 +31,34 @@
     - "{{ repository_dir }}"
     - "{{ tmp_dir }}"
 
+- name: Check whether images.json exists
+  become: true
+  ansible.builtin.stat:
+    path: "{{ images_dir }}/images.json"
+    get_attributes: false
+    get_checksum: false
+    get_mime: false
+  register: images_stat
+
+- name: Read images.json contents
+  become: true
+  when: images_stat.stat.exists
+  ansible.builtin.slurp:
+    src: "{{ images_dir }}/images.json"
+  register: images_slurp
+
+- name: Parse images_stat from json
+  ansible.builtin.set_fact:
+    # "W10K" is "[]" in base64
+    current_images_json: "{{ images_slurp.content | default('W10K') | b64decode | from_json }}"
+
 - name: Start async download of base images
   become: true
   ansible.builtin.get_url:
     url: "{{ image.url }}"
     dest: "{{ repository_dir }}/{{ image.name }}.img"
     checksum: "{{ image.checksum }}"
-  loop: "{{ zk_kvm.images | list}}"
+  loop: "{{ (zk_kvm.images | selectattr('name', 'in', zk_kvm.vms | map(attribute='image') | unique) | list) if zk_kvm_images_download_only_required_images else zk_kvm.images }}"
   loop_control:
     loop_var: image
   async: 600
@@ -52,7 +73,8 @@
   register: download_jobs_status
   until: download_jobs_status.finished
   loop: "{{ download_jobs.results }}"
-  retries: "{{ zk_kvm_image_download_timeout }}"
+  retries: "{{ zk_kvm_images_download_timeout }}"
+  ignore_errors: "{{ zk_kvm_images_download_ignore_errors }}"
   delay: 1
 
 - name: Set fact for image changed status
@@ -90,7 +112,7 @@
           image.name: (
             not images_stat.stat.exists
             or
-            (image.name in image_changed_status and image_changed_status[image.name])
+            (image_changed_status is defined and image.name in image_changed_status and image_changed_status[image.name])
             or
             (images_stat.stat.exists and
               (
@@ -107,7 +129,7 @@
     loop_var: image
 
 - name: Build golden image
-  ansible.builtin.include_tasks: ./build_templates/{{ image.build_template }}.yml
+  ansible.builtin.include_tasks: ./build_templates/main.yml
   vars:
     golden_image_path: "{{ images_dir }}/{{ image.name }}.qcow2"
     intermediate_image_path: "{{ tmp_dir }}/{{ image.name }}-intermediate-{{ current_timestamp }}.qcow2"

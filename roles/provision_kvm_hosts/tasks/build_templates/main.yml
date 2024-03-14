@@ -1,0 +1,47 @@
+---
+# host: kvm_host
+# vars: image, zk_kvm,
+#       golden_image_path, intermediate_image_path, base_image_download_path
+
+- block:
+    - name: (build_image) qemu-img convert to intermediate qcow2 image
+      become: true
+      ansible.builtin.command: qemu-img convert -O qcow2 "{{ base_image_download_path }}" "{{ intermediate_image_path }}"
+    - name: (build_image) copy over firstboot script
+      when: image.virt_customize_firstboot | default(false)
+      become: true
+      ansible.builtin.copy:
+        content: "{{ image.virt_customize_firstboot }}"
+        dest: "{{ tmp_dir }}/{{ image.name }}-firstboot.sh"
+    - name: (build_image) virt-customize intermediate image
+      become: true
+      ansible.builtin.command: >-
+        virt-customize -a "{{ intermediate_image_path }}"
+        --truncate "/etc/machine-id"
+        {% if image.virt_customize_run_command | default(false) %}
+        --run-command "{{ image.virt_customize_run_command }}"
+        {% endif %}
+        {% if image.virt_customize_uninstall_packages | default(false) %}
+        --uninstall "{{ image.virt_customize_uninstall_packages }}"
+        {% endif %}
+        {% if image.virt_customize_install_packages | default(false) %}
+        --install "{{ image.virt_customize_install_packages }}"
+        {% endif %}
+        {% if image.virt_customize_firstboot_command | default(false) %}
+        --firstboot-command "{{ image.virt_customize_firstboot_command }}"
+        {% endif %}
+        {% if image.virt_customize_firstboot | default(false) %}
+        --firstboot "{{ tmp_dir }}/{{ image.name }}-firstboot.sh"
+        {% endif %}
+    - name: (build_image) move intermediate image to golden image
+      become: true
+      ansible.builtin.command: mv {{ intermediate_image_path }} {{ golden_image_path }}
+      register: mv_result
+      changed_when: mv_result.rc == 0
+      check_mode: false
+  always:
+    - name: Delete intermediate image
+      become: true
+      ansible.builtin.file:
+        path: "{{ intermediate_image_path }}"
+        state: absent
