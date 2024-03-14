@@ -8,62 +8,78 @@
     domain: "{{ vm.name }}"
     command: |
       #!/bin/bash
+      set -o pipefail
       {% for user in vm.users %}
       username="{{ user.name }}"
       groups="{{ user.groups | join(' ') }}"
       ssh_keys="{{ user.ssh_keys | join('\n') }}"
 
       if ! id -u "${username}" &> /dev/null; then
-        useradd -m "${username}" -s "/bin/bash"
-        echo "CHANGED: useradd"
+        if useradd -m "${username}" -s "/bin/bash"; then
+          echo "TASK_CHANGED: ({{ user.name }}) useradd"
+        else
+          echo "TASK_FAILED: ({{ user.name }}) useradd"; exit 1
+        fi
       fi
 
       {% if user.passwordless_sudo %}
-      if [ ! -f "/etc/sudoers.d/nopw-$username" ] || ! grep -q "$username ALL=(ALL) NOPASSWD:ALL" "/etc/sudoers.d/nopw-$username"; then
-          echo "$username ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/nopw-$username"
-          chmod 0440 "/etc/sudoers.d/nopw-$username"
-          echo "CHANGED: passwordless_sudo"
+      if [ ! -f "/etc/sudoers.d/nopasswd-$username" ] || ! grep -q "$username ALL=(ALL) NOPASSWD:ALL" "/etc/sudoers.d/nopasswd-$username"; then
+        if echo "$username ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/nopasswd-$username" && chmod 0440 "/etc/sudoers.d/nopasswd-$username"; then
+          echo "TASK_CHANGED: ({{ user.name }}) passwordless_sudo"
+        else
+          echo "TASK_FAILED: ({{ user.name }}) passwordless_sudo"; exit 1
+        fi
       fi
       {% else %}
-      if [ -f "/etc/sudoers.d/nopw-${username}" ]; then
-          rm "/etc/sudoers.d/nopw-${username}"
-          echo "CHANGED: passwordless_sudo"
+      if [ -f "/etc/sudoers.d/nopasswd-${username}" ]; then
+        if rm "/etc/sudoers.d/nopasswd-${username}"; then
+          echo "TASK_CHANGED: ({{ user.name }}) remove_passwordless_sudo"
+        else
+          echo "TASK_FAILED: ({{ user.name }}) remove_passwordless_sudo"; exit 1
+        fi
       fi
       {% endif %}
 
       for group in ${groups}; do
         if ! id -nG "${username}" | grep -qw "${group}"; then
-          usermod -aG "${group}" "${username}"
-          echo "CHANGED: group"
+          if usermod -aG "${group}" "${username}"; then
+            echo "TASK_CHANGED: ({{ user.name }}) group"
+          else
+            echo "TASK_FAILED: ({{ user.name }}) group"; exit 1
+          fi
         fi
       done
 
       {% if user.password %}
-      echo "${username}:{{ user.password }}" | chpasswd
+      if ! echo "${username}:{{ user.password }}" | chpasswd; then
+        echo "TASK_FAILED: ({{ user.name }}) password"; exit 1
+      fi
       {% endif %}
 
       USER_SSH_DIR="$(getent passwd "${username}" | cut -d: -f6)/.ssh"
-      mkdir -p "$USER_SSH_DIR"
+      mkdir -p "$USER_SSH_DIR" && chmod 700 "$USER_SSH_DIR"
       AUTH_KEYS_FILE="$USER_SSH_DIR/authorized_keys"
 
       if [ -f "${AUTH_KEYS_FILE}" ]; then
-        OLD_SHA1SUM=$(sha1sum ${AUTH_KEYS_FILE} | cut -d " " -f1)
+        OLD_SHA1SUM=$(sha1sum "${AUTH_KEYS_FILE}" | cut -d " " -f1)
       else
         OLD_SHA1SUM=""
       fi
 
-      echo -e "${ssh_keys}" > "${AUTH_KEYS_FILE}"
-      chmod 600 "${AUTH_KEYS_FILE}"
-      chown -R "${username}:${username}" "$USER_SSH_DIR"
-
-      NEW_SHA1SUM=$(sha1sum ${AUTH_KEYS_FILE} | cut -d " " -f1)
+      echo -e "${ssh_keys}" > "${AUTH_KEYS_FILE}" && chmod 600 "${AUTH_KEYS_FILE}"
+      if ! chown -R "${username}:$(id -gn "${username}")" "$USER_SSH_DIR"; then
+        echo "TASK_FAILED: ({{ user.name }}) chown .ssh directory"; exit 1
+      fi
+      NEW_SHA1SUM=$(sha1sum "${AUTH_KEYS_FILE}" | cut -d " " -f1)
 
       if [ "${OLD_SHA1SUM}" != "${NEW_SHA1SUM}" ]; then
-        echo "CHANGED: ssh_keys"
+        echo "TASK_CHANGED: ({{ user.name }}) ssh_keys"
       fi
       {% endfor %}
     timeout: 20
     poll: !!float "0.1"
   register: run_cmd
   changed_when:
-    - "'CHANGED' in run_cmd.output.stdout | default('')"
+    - "'TASK_CHANGED' in run_cmd.output.stdout | default('')"
+  failed_when:
+    - "'TASK_FAILED' in run_cmd.output.stdout | default('')"
