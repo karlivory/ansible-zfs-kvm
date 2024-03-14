@@ -20,7 +20,7 @@ def get_status(module: AnsibleModule, domain: str, pid: int):
     my_cmd_json_pid = json.dumps(
         {"execute": "guest-exec-status", "arguments": {"pid": pid}}
     )
-    rc, stdout, _ = module.run_command(
+    rc, stdout, stderr = module.run_command(
         [
             "virsh",
             "-c",
@@ -34,7 +34,7 @@ def get_status(module: AnsibleModule, domain: str, pid: int):
 
     if rc != 0:
         raise RuntimeError(
-            "virsh qemu-agent-command guest-exdc returned nonzero exit code"
+            f"virsh qemu-agent-command guest-exec returned nonzero exit code; stderr={stderr}"
         )
 
     try:
@@ -59,7 +59,7 @@ def execute_command(module: AnsibleModule, domain: str, command: str):
         }
     )
 
-    rc, stdout, _ = module.run_command(
+    rc, stdout, stderr = module.run_command(
         [
             "virsh",
             "-c",
@@ -72,7 +72,7 @@ def execute_command(module: AnsibleModule, domain: str, command: str):
     )
     if rc != 0:
         raise RuntimeError(
-            "virsh qemu-agent-command guest-exdc returned nonzero exit code",
+            f"virsh qemu-agent-command guest-exec returned nonzero exit code; stderr={stderr}",
         )
     try:
         return int(json.loads(stdout)["return"]["pid"])
