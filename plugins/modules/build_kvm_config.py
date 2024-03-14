@@ -109,9 +109,9 @@ def build_vm(zk_vm: ZkVM, kvm_networks: List[ZkVMNetwork]) -> VM:
         )
 
         netplan = Utils.dict_merge(kvm_network.netplan, zk_vm_network.netplan)
-        if netplan == {}:
-            netplan = None
-        if netplan is not None:
+        if netplan is None:
+            netplan = {}
+        else:
             netplan = {"network": {"ethernets": {f"enp{nic_bus}s0": netplan}}}
 
         network = VMNetwork(
