@@ -58,7 +58,17 @@
     url: "{{ image.url }}"
     dest: "{{ repository_dir }}/{{ image.name }}.img"
     checksum: "{{ image.checksum }}"
-  loop: "{{ (zk_kvm.images | selectattr('name', 'in', zk_kvm.vms | map(attribute='image') | unique) | list) if zk_kvm_images_download_only_required_images else zk_kvm.images }}"
+  loop: >-
+      {{
+        zk_kvm.images
+          if not zk_kvm_images_download_only_required_images and zk_kvm_images_download_force else
+        zk_kvm.images | selectattr('name', 'in', zk_kvm.vms | map(attribute='image') | unique | list)
+          if zk_kvm_images_download_only_required_images and zk_kvm_images_download_force else
+        zk_kvm.images | rejectattr('name', 'in', current_images_json | map(attribute='name') | list) | selectattr('name', 'in', zk_kvm.vms | map(attribute='image') | unique | list)
+          if zk_kvm_images_download_only_required_images and not zk_kvm_images_download_force else
+        zk_kvm.images | rejectattr('name', 'in', current_images_json | map(attribute='name') | list)
+          if not zk_kvm_images_download_only_required_images and not zk_kvm_images_download_force
+      }}
   loop_control:
     loop_var: image
   async: 600
@@ -82,27 +92,6 @@
   set_fact:
     image_changed_status: "{{ image_changed_status | default({}) | combine({item.item.image.name: item.changed}) }}"
   loop: "{{ download_jobs_status.results }}"
-
-- name: Check whether images.json exists
-  become: true
-  ansible.builtin.stat:
-    path: "{{ images_dir }}/images.json"
-    get_attributes: false
-    get_checksum: false
-    get_mime: false
-  register: images_stat
-
-- name: Read images.json contents
-  become: true
-  when: images_stat.stat.exists
-  ansible.builtin.slurp:
-    src: "{{ images_dir }}/images.json"
-  register: images_slurp
-
-- name: Parse images_stat into json
-  when: images_stat.stat.exists
-  ansible.builtin.set_fact:
-    current_images_json: "{{ images_slurp.content | b64decode | from_json }}"
 
 - name: Determine if golden image rebuild is needed
   ansible.builtin.set_fact:
