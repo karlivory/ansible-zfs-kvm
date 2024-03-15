@@ -25,7 +25,7 @@ zk_kvm_images:
     # checksum: sha256:https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.6/images/openSUSE-Leap-15.6.x86_64-NoCloud.qcow2.sha256 # wrong value
     checksum: ""
     virt_customize_uninstall_packages: cloud-init
-    virt_customize_install_packages: qemu-guest-agent
+    # virt_customize_install_packages: qemu-guest-agent
     virt_customize_firstboot: |
       #!/bin/bash
       systemctl enable qemu-guest-agent && systemctl start qemu-guest-agent
