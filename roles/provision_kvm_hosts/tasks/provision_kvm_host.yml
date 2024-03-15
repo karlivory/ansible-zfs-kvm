@@ -61,13 +61,8 @@
   loop: >-
       {{
         zk_kvm.images
-          if not zk_kvm_images_download_only_required_images and zk_kvm_images_download_force else
-        zk_kvm.images | selectattr('name', 'in', zk_kvm.vms | map(attribute='image') | unique | list)
-          if zk_kvm_images_download_only_required_images and zk_kvm_images_download_force else
-        zk_kvm.images | rejectattr('name', 'in', current_images_json | map(attribute='name') | list) | selectattr('name', 'in', zk_kvm.vms | map(attribute='image') | unique | list)
-          if zk_kvm_images_download_only_required_images and not zk_kvm_images_download_force else
+          if zk_kvm_images_download_force else
         zk_kvm.images | rejectattr('name', 'in', current_images_json | map(attribute='name') | list)
-          if not zk_kvm_images_download_only_required_images and not zk_kvm_images_download_force
       }}
   loop_control:
     loop_var: image

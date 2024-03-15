@@ -11,7 +11,6 @@ zk_vm_post_setup_script_timeout: 10
 zk_kvm_networks: []
 zk_kvm_images_download_timeout: 900
 zk_kvm_images_download_ignore_errors: false
-zk_kvm_images_download_only_required_images: true
 zk_kvm_images_download_force: false
 zk_kvm_images:
   - name: rocky9
