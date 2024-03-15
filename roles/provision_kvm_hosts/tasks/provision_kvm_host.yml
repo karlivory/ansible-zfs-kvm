@@ -31,26 +31,17 @@
     - "{{ repository_dir }}"
     - "{{ tmp_dir }}"
 
-- name: Check whether images.json exists
-  become: true
-  ansible.builtin.stat:
-    path: "{{ images_dir }}/images.json"
-    get_attributes: false
-    get_checksum: false
-    get_mime: false
-  register: images_stat
+- name: Get list of existing files under repository/
+  ansible.builtin.find:
+    paths: "{{ repository_dir }}"
+    file_type: file
+    recurse: false
+  register: existing_images_find
 
-- name: Read images.json contents
-  become: true
-  when: images_stat.stat.exists
-  ansible.builtin.slurp:
-    src: "{{ images_dir }}/images.json"
-  register: images_slurp
-
-- name: Parse images_stat from json
-  ansible.builtin.set_fact:
-    # "W10K" is "[]" in base64
-    current_images_json: "{{ images_slurp.content | default('W10K') | b64decode | from_json }}"
+- set_fact:
+    required_image_names: "{{ zk_kvm.images | selectattr('name', 'in', zk_kvm.vms | map(attribute='image') | unique | list) | map(attribute='name') }}"
+    existing_image_names: "{{ existing_images_find.files | default([]) | map(attribute='path') | select('match', '.*\\.img$') | map('regex_replace', '^.*\\/([^\\/]+)\\.img$', '\\1') | list }}"
+    existing_image_jsons: "{{ existing_images_find.files | default([]) | map(attribute='path') | select('match', '.*\\.json$') | map('regex_replace', '^.*\\/([^\\/]+)\\.json$', '\\1') | list }}"
 
 - name: Start async download of base images
   become: true
@@ -61,8 +52,13 @@
   loop: >-
       {{
         zk_kvm.images
-          if zk_kvm_images_download_force else
-        zk_kvm.images | rejectattr('name', 'in', current_images_json | map(attribute='name') | list)
+          if not zk_kvm_images_build_only_required_images and zk_kvm_images_download_force else
+        zk_kvm.images | selectattr('name', 'in', required_image_names)
+          if zk_kvm_images_build_only_required_images and zk_kvm_images_download_force else
+        zk_kvm.images | selectattr('name', 'in', required_image_names) | rejectattr('name', 'in', existing_image_names)
+          if zk_kvm_images_build_only_required_images and not zk_kvm_images_download_force else
+        zk_kvm.images | rejectattr('name', 'in', existing_image_names)
+          if not zk_kvm_images_build_only_required_images and not zk_kvm_images_download_force
       }}
   loop_control:
     loop_var: image
@@ -85,8 +81,22 @@
 - name: Set fact for image changed status
   become: true
   set_fact:
-    image_changed_status: "{{ image_changed_status | default({}) | combine({item.item.image.name: item.changed}) }}"
+    image_download_changed_status: "{{ image_download_changed_status | default({}) | combine({item.item.image.name: item.changed}) }}"
   loop: "{{ download_jobs_status.results }}"
+
+- name: Read image json contents
+  become: true
+  ansible.builtin.slurp:
+    src: "{{ repository_dir }}/{{ image.name }}.json"
+  loop: >-
+    {{
+      zk_kvm.images | selectattr('name', 'in', existing_image_jsons) | selectattr('name', 'in', required_image_names) 
+        if zk_kvm_images_build_only_required_images else
+      zk_kvm.images | selectattr('name', 'in', existing_image_jsons)
+    }}
+  loop_control:
+    loop_var: image
+  register: image_json_slurps
 
 - name: Determine if golden image rebuild is needed
   ansible.builtin.set_fact:
@@ -94,16 +104,14 @@
       {{
         build_image | default({}) | combine({
           image.name: (
-            not images_stat.stat.exists
-            or
-            (image_changed_status is defined and image.name in image_changed_status and image_changed_status[image.name])
-            or
-            (images_stat.stat.exists and
-              (
-                (current_images_json | selectattr("name", "equalto", image.name) | list | length == 0)
-                or
-                (current_images_json | selectattr("name", "equalto", image.name) | list | first != image)
-              )
+            (not zk_kvm_images_build_only_required_images or image.name in required_image_names)
+            and
+            (
+              (image_download_changed_status is defined and image_download_changed_status[image.name])
+              or
+              image.name not in existing_image_jsons
+              or
+              image_json_slurps.results | selectattr('image.name', 'equalto', image.name) | map(attribute='content') | first | b64decode | from_json != image
             )
           )
         })
@@ -122,10 +130,3 @@
   loop_control:
     loop_var: image
   when: build_image[image.name] | default(false)
-
-- name: Write images.json
-  when: (not images_stat.stat.exists) or (current_images_json != zk_kvm.images)
-  become: true
-  ansible.builtin.copy:
-    content: "{{ zk_kvm.images | to_nice_json }}"
-    dest: "{{ images_dir }}/images.json"

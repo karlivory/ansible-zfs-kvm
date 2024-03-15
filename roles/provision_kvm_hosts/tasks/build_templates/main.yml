@@ -39,6 +39,11 @@
       register: mv_result
       changed_when: mv_result.rc == 0
       check_mode: false
+    - name: Write image json
+      become: true
+      ansible.builtin.copy:
+        content: "{{ image | to_nice_json }}"
+        dest: "{{ repository_dir }}/{{ image.name }}.json"
   always:
     - name: Delete intermediate image
       become: true
