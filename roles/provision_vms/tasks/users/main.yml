@@ -9,77 +9,90 @@
     command: |
       #!/bin/bash
       set -o pipefail
-      {% for user in vm.users %}
-      username="{{ user.name }}"
-      groups="{{ user.groups | join(' ') }}"
-      ssh_keys="{{ user.ssh_keys | join('\n') }}"
 
-      if ! id -u "${username}" &> /dev/null; then
-        if useradd -m "${username}" -s "/bin/bash"; then
-          echo "TASK_CHANGED: ({{ user.name }}) useradd"
-        else
-          echo "TASK_FAILED: ({{ user.name }}) useradd"; exit 1
-        fi
-      fi
+      manage_user() {
+        username="$1"
+        IFS=',' read -ra groups <<< "$2"
+        IFS=',' read -ra ssh_keys <<< "$3"
+        passwordless_sudo="$4"
+        password="$5"
 
-      {% if user.passwordless_sudo %}
-      if [ ! -f "/etc/sudoers.d/nopasswd-$username" ] || ! grep -q "$username ALL=(ALL) NOPASSWD:ALL" "/etc/sudoers.d/nopasswd-$username"; then
-        if echo "$username ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/nopasswd-$username" && chmod 0440 "/etc/sudoers.d/nopasswd-$username"; then
-          echo "TASK_CHANGED: ({{ user.name }}) passwordless_sudo"
-        else
-          echo "TASK_FAILED: ({{ user.name }}) passwordless_sudo"; exit 1
-        fi
-      fi
-      {% else %}
-      if [ -f "/etc/sudoers.d/nopasswd-${username}" ]; then
-        if rm "/etc/sudoers.d/nopasswd-${username}"; then
-          echo "TASK_CHANGED: ({{ user.name }}) remove_passwordless_sudo"
-        else
-          echo "TASK_FAILED: ({{ user.name }}) remove_passwordless_sudo"; exit 1
-        fi
-      fi
-      {% endif %}
-
-      for group in ${groups}; do
-        if ! id -nG "${username}" | grep -qw "${group}"; then
-          if usermod -aG "${group}" "${username}"; then
-            echo "TASK_CHANGED: ({{ user.name }}) group"
+        if ! id -u "${username}" &> /dev/null; then
+          if useradd -m "${username}" -s "/bin/bash"; then
+            echo "TASK_CHANGED: (${username}) useradd"
           else
-            echo "TASK_FAILED: ({{ user.name }}) group"; exit 1
+            echo "TASK_FAILED: (${username}) useradd"; exit 1
           fi
         fi
-      done
 
-      {% if user.password %}
-      if ! echo "${username}:{{ user.password }}" | chpasswd; then
-        echo "TASK_FAILED: ({{ user.name }}) password"; exit 1
-      fi
-      {% endif %}
+        if [ "${passwordless_sudo}" = "1" ]; then
+          if [ ! -f "/etc/sudoers.d/nopasswd-$username" ] || ! grep -q "$username ALL=(ALL) NOPASSWD:ALL" "/etc/sudoers.d/nopasswd-$username"; then
+            if echo "$username ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/nopasswd-$username" && chmod 0440 "/etc/sudoers.d/nopasswd-$username"; then
+              echo "TASK_CHANGED: (${username}) passwordless_sudo"
+            else
+              echo "TASK_FAILED: (${username}) passwordless_sudo"; exit 1
+            fi
+          fi
+        else
+          if [ -f "/etc/sudoers.d/nopasswd-${username}" ]; then
+            if rm "/etc/sudoers.d/nopasswd-${username}"; then
+              echo "TASK_CHANGED: (${username}) remove_passwordless_sudo"
+            else
+              echo "TASK_FAILED: (${username}) remove_passwordless_sudo"; exit 1
+            fi
+          fi
+        fi
 
-      USER_SSH_DIR="$(getent passwd "${username}" | cut -d: -f6)/.ssh"
-      mkdir -p "$USER_SSH_DIR" && chmod 700 "$USER_SSH_DIR"
-      AUTH_KEYS_FILE="$USER_SSH_DIR/authorized_keys"
+        for group in "${groups[@]}"; do
+          if ! id -nG "${username}" | grep -qw "$group"; then
+            if usermod -aG "$group" "$username"; then
+              echo "TASK_CHANGED: (${username}) group"
+            else
+              echo "TASK_FAILED: (${username}) group"; exit 1
+            fi
+          fi
+        done
 
-      if [ -f "${AUTH_KEYS_FILE}" ]; then
-        OLD_SHA1SUM=$(sha1sum "${AUTH_KEYS_FILE}" | cut -d " " -f1)
-      else
-        OLD_SHA1SUM=""
-      fi
+        if [ -n "${password}" ]; then
+          if ! echo "${username}:${password}" | chpasswd; then
+            echo "TASK_FAILED: (${username}) password"; exit 1
+          fi
+        fi
 
-      echo -e "${ssh_keys}" > "${AUTH_KEYS_FILE}" && chmod 600 "${AUTH_KEYS_FILE}"
-      if ! chown -R "${username}:$(id -gn "${username}")" "$USER_SSH_DIR"; then
-        echo "TASK_FAILED: ({{ user.name }}) chown .ssh directory"; exit 1
-      fi
-      NEW_SHA1SUM=$(sha1sum "${AUTH_KEYS_FILE}" | cut -d " " -f1)
+        USER_SSH_DIR="$(getent passwd "${username}" | cut -d: -f6)/.ssh"
+        mkdir -p "$USER_SSH_DIR" && chmod 700 "$USER_SSH_DIR"
+        AUTH_KEYS_FILE="$USER_SSH_DIR/authorized_keys"
 
-      if [ "${OLD_SHA1SUM}" != "${NEW_SHA1SUM}" ]; then
-        echo "TASK_CHANGED: ({{ user.name }}) ssh_keys"
-      fi
+        if [ -f "${AUTH_KEYS_FILE}" ]; then
+          OLD_SHA1SUM=$(sha1sum "${AUTH_KEYS_FILE}" | cut -d " " -f1)
+        else
+          OLD_SHA1SUM=""
+        fi
+
+        # Convert SSH keys array back to newline-separated string for authorized_keys
+        printf "%s\n" "${ssh_keys[@]}" > "${AUTH_KEYS_FILE}" && chmod 600 "${AUTH_KEYS_FILE}"
+        if ! chown -R "${username}:$(id -gn "${username}")" "$USER_SSH_DIR"; then
+          echo "TASK_FAILED: (${username}) chown .ssh directory"; exit 1
+        fi
+        NEW_SHA1SUM=$(sha1sum "${AUTH_KEYS_FILE}" | cut -d " " -f1)
+
+        if [ "${OLD_SHA1SUM}" != "${NEW_SHA1SUM}" ]; then
+          echo "TASK_CHANGED: (${username}) ssh_keys"
+        fi
+      }
+
+      {% for user in vm.users %}
+      manage_user "{{ user.name }}" \
+                  "{{ user.groups | join(',') }}" \
+                  "{{ user.ssh_keys | join(',') }}" \
+                  "{{ user.passwordless_sudo | default(false) | ternary('1', '0') }}" \
+                  "{{ user.password | default('') }}"
       {% endfor %}
     timeout: 20
     poll: !!float "0.1"
   register: run_cmd
   changed_when:
     - "'TASK_CHANGED' in run_cmd.output.stdout | default('')"
-  failed_when:
-    - "'TASK_FAILED' in run_cmd.output.stdout | default('')"
+  failed_when: 
+    - run_cmd.failed or ('TASK_FAILED' in run_cmd.output.stdout | default('')) or (run_cmd.output.rc | default(0) != 0)
+
