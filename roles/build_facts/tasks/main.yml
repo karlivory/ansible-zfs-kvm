@@ -12,6 +12,7 @@
       zk_vm_qemu_machine_type: "{{ zk_vm_qemu_machine_type }}"
       zk_vm_prune_dangling_disks: "{{ zk_vm_prune_dangling_disks }}"
       zk_vm_prune_dangling_networks: "{{ zk_vm_prune_dangling_networks }}"
+      zk_vm_default_users: "{{ zk_vm_default_users }}"
       zk_vm_users: "{{ zk_vm_users }}"
       zk_vm_post_setup_script: "{{ zk_vm_post_setup_script }}"
       zk_vm_post_setup_script_timeout: "{{ zk_vm_post_setup_script_timeout }}"

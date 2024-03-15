@@ -10,6 +10,10 @@ from ansible_collections.karlivory.zk.plugins.module_utils.utils import (
 
 def vm_from_conf(vm: ZkVM) -> VM:
     users = []
+    existing_user_names = {zk_user.name for zk_user in vm.zk_vm_users}
+    for zk_default_user in vm.zk_vm_default_users:
+        if zk_default_user.name not in existing_user_names:
+            vm.zk_vm_users.append(zk_default_user)
     for zk_user in vm.zk_vm_users:
         users.append(
             VMUser(

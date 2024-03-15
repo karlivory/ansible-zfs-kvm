@@ -110,6 +110,7 @@ class ZkVM:
     zk_vm_qemu_machine_type: str
     zk_vm_prune_dangling_networks: bool
     zk_vm_prune_dangling_disks: bool
+    zk_vm_default_users: List[ZkVMUser]
     zk_vm_users: List[ZkVMUser]
     zk_vm_post_setup_script: str
     zk_vm_post_setup_script_timeout: int

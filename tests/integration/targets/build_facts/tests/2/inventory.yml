@@ -28,15 +28,25 @@ vmgroup1:
     zk_vm_image: debian11
     zk_vm_memory_mb: 3000
     zk_vm_vcpus: 1
+    zk_vm_default_users:
+      - name: foobar
+        passwordless_sudo: true
+        ssh_keys: ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCOeyDnnrW7jsgmFhNuDsqLDuJJgZvLZt4t1RHtyYE4QP6LzZVUk/94pREXzxy+6Psj/tM+swFJjrc3YHNpss6tN1jwmt06lV06kabDT4vzqb5kd2uXDVOHvYHHaQer7y2WEz8Ob2hiuM2SD6JaM6kc1m14QfhxGw8mA/HViODh/EAZf7bzpUHld7EISJui5Zs1Q1bteWMt/B3+Q+0fHgd5Z5FmTGnR5fBXM0M+To0rbU7hg7trvGW7S3wI+hooGsCTHJvYZ6f/ZQ7M0cw/uoFTQifJAPR6w5NO8FrOMqFvK+gAncWPgd2OFpjNScM9lC3XnwB1S56zUu1npAbPivxf foobar"]
+
   hosts:
     vm1:
       zk_vm_name: vm1
+      zk_vm_default_users: []
       zk_vm_networks:
         - name: net1
           netplan:
             addresses: [10.0.101.101/24]
     vm2:
       zk_vm_name: vm2
+      zk_vm_users:
+        - name: foobar
+          passwordless_sudo: false
+          ssh_keys: []
       zk_vm_networks:
         - name: net1
           netplan:
@@ -44,6 +54,9 @@ vmgroup1:
     vm3:
       zk_vm_name: vm3
       zk_vm_image: ubuntu2204
+      zk_vm_users:
+        - name: otheruser
+          ssh_keys: []
       zk_vm_networks:
         - name: net1
           netplan:

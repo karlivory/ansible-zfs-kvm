@@ -72,7 +72,12 @@ kvm1:
     prune_dangling_disks: true
     prune_dangling_networks: true
     qemu_machine_type: pc-q35-6.2
-    users: []
+    users:
+    - groups: []
+      name: foobar
+      password: null
+      passwordless_sudo: false
+      ssh_keys: []
     vcpus: 1
   - disks:
     - dev: vda
@@ -107,7 +112,18 @@ kvm1:
     prune_dangling_disks: true
     prune_dangling_networks: true
     qemu_machine_type: pc-q35-6.2
-    users: []
+    users:
+    - groups: []
+      name: otheruser
+      password: null
+      passwordless_sudo: false
+      ssh_keys: []
+    - groups: []
+      name: foobar
+      password: null
+      passwordless_sudo: true
+      ssh_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCOeyDnnrW7jsgmFhNuDsqLDuJJgZvLZt4t1RHtyYE4QP6LzZVUk/94pREXzxy+6Psj/tM+swFJjrc3YHNpss6tN1jwmt06lV06kabDT4vzqb5kd2uXDVOHvYHHaQer7y2WEz8Ob2hiuM2SD6JaM6kc1m14QfhxGw8mA/HViODh/EAZf7bzpUHld7EISJui5Zs1Q1bteWMt/B3+Q+0fHgd5Z5FmTGnR5fBXM0M+To0rbU7hg7trvGW7S3wI+hooGsCTHJvYZ6f/ZQ7M0cw/uoFTQifJAPR6w5NO8FrOMqFvK+gAncWPgd2OFpjNScM9lC3XnwB1S56zUu1npAbPivxf foobar
     vcpus: 1
   - disks:
     - dev: vda
