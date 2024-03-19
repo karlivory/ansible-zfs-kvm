@@ -23,15 +23,17 @@ class KVMHostValidator:
     def validate(kvm_host: KVMHost) -> ValidationResult:
         errors = []
 
+        # TODO: configurable zk_validation* params? (regex patterns, min/max etc)
+
         # validate the whole kvm config
-        for vm in kvm_host.vms:
-            vm_name_regex = r"^[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9]$"
-            if not re.match(vm_name_regex, vm.name):
-                errors.append(
-                    ValidationError(
-                        field_name="vm.name",
-                        error=f'field value "{vm.name}" does not match regex {vm_name_regex}',
-                    )
-                )
+        # for vm in kvm_host.vms:
+        #     vm_name_regex = r"^[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9]$"
+        #     if not re.match(vm_name_regex, vm.name):
+        #         errors.append(
+        #             ValidationError(
+        #                 field_name="vm.name",
+        #                 error=f'field value "{vm.name}" does not match regex {vm_name_regex}',
+        #             )
+        #         )
 
         return ValidationResult(fail=len(errors) > 0, validation_errors=errors)
