@@ -1,0 +1,98 @@
+---
+all:
+  vars:
+    ansible_user: testuser
+    ansible_ssh_private_key_file: ./id_tmpkey
+    zk_kvm_memballoon_mem_limit_mb: 3072
+    zk_vm_name: "{{ inventory_hostname }}"
+    zk_vm_kvm_hosts: testkvm
+    zk_vm_memory_mb: 3072
+    zk_vm_vcpus: 1
+    zk_kvm_data_dir: /zk-data
+    zk_vm_disk_default_zvol_parent: zroot/zk
+    zk_vm_disks:
+      - name: "{{ zk_vm_name }}-root"
+        dev: vda
+        size: 10G
+    zk_vm_networks:
+      - name: virbr0
+        netplan:
+          addresses: ["{{ ansible_host }}/24"]
+  children:
+    zk_kvm_hosts:
+      hosts:
+        testkvm:
+          ansible_host: localhost
+          ansible_connection: local
+          zk_kvm_networks:
+            - name: virbr0
+              subnet: 192.168.122.0/24
+              nic_type: bridge
+              nic_source: virbr0
+              nic_device_model: virtio
+              nic_bus: 12
+              netplan:
+                dhcp4: false
+                dhcp6: false
+                routes:
+                  - to: "0.0.0.0/0"
+                    via: 192.168.122.1
+                nameservers:
+                  addresses:
+                    - 1.1.1.1
+    zk_vms:
+      hosts:
+        testvm-debian11:
+          ansible_host: 192.168.122.100
+          zk_vm_image: debian11
+        testvm-debian12:
+          ansible_host: 192.168.122.101
+          zk_vm_image: debian11
+        testvm-ubuntu2204:
+          ansible_host: 192.168.122.120
+          zk_vm_image: ubuntu2204
+        testvm-opensuseleap:
+          ansible_host: 192.168.122.130
+          zk_vm_image: opensuse_leap
+          zk_vm_networks_netplan_enabled: false
+          zk_vm_post_setup_script: |
+            #!/bin/bash
+            if ! grep -e "^NETCONFIG_DNS_STATIC_SERVERS" /etc/sysconfig/network/config; then
+              echo "NETCONFIG_DNS_STATIC_SERVERS=1.1.1.1" > "/etc/sysconfig/network/config"
+            else
+              sed -i 's/^NETCONFIG_DNS_STATIC_SERVERS.*$/NETCONFIG_DNS_STATIC_SERVERS=1.1.1.1/' /etc/sysconfig/network/config
+            fi
+            echo "default 192.168.122.1" > "/etc/sysconfig/network/routes"
+            enp12s0_cfg=$(cat <<EOF
+            BOOTPROTO=static
+            IPADDR=192.168.122.130/24
+            STARTMODE=auto
+            USERCONTROL=no
+            EOF
+            )
+            if [ "$enp12s0_cfg" != "$(cat "/etc/sysconfig/network/ifcfg-enp12s0" 2>/dev/null)" ]; then
+              echo "$enp12s0_cfg" > "/etc/sysconfig/network/ifcfg-enp12s0"
+              service network restart
+              echo TASK_CHANGED
+            fi
+        testvm-rocky9:
+          ansible_host: 192.168.122.140
+          zk_vm_image: rocky9
+          zk_vm_networks_netplan_enabled: false
+          zk_vm_post_setup_script: |
+            #!/bin/bash
+            enp12s0_cfg=$(cat <<EOF
+            DEVICE=enp12s0
+            ONBOOT=yes
+            BOOTPROTO=none
+            IPADDR=192.168.122.140
+            NETMASK=255.255.255.0
+            GATEWAY=192.168.122.1
+            DNS1=1.1.1.1
+            EOF
+            )
+            if [ "$enp12s0_cfg" != "$(cat "/etc/sysconfig/network-scripts/ifcfg-enp12s0" 2>/dev/null)" ]; then
+              echo "$enp12s0_cfg" > "/etc/sysconfig/network-scripts/ifcfg-enp12s0"
+              systemctl restart NetworkManager
+              echo TASK_CHANGED
+            fi
