@@ -31,6 +31,9 @@ zk_kvm_images:
       #!/bin/bash
       systemctl enable qemu-guest-agent && systemctl start qemu-guest-agent
       growpart /dev/vda 1 && resize2fs /dev/vda1
+      sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT.*$/GRUB_CMDLINE_LINUX_DEFAULT="console=ttyS0 net.ifnames=1 dis_ucode_ldr"/' /etc/default/grub
+      grub2-mkconfig -o /boot/grub2/grub.cfg
+      reboot
   - name: debian12
     url: https://cdimage.debian.org/images/cloud/bookworm/daily/latest/debian-12-generic-amd64-daily.qcow2
     checksum: sha512:https://cdimage.debian.org/images/cloud/bookworm/daily/latest/SHA512SUMS
