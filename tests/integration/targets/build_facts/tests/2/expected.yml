@@ -33,7 +33,7 @@ kvm1:
       subnet: 10.0.101.0/24
     networks_netplan_enabled: true
     post_setup_script: ''
-    post_setup_script_timeout: 10
+    post_setup_script_timeout: 60
     prune_dangling_disks: true
     prune_dangling_networks: true
     qemu_machine_type: pc-q35-6.2
@@ -68,7 +68,7 @@ kvm1:
       subnet: 10.0.101.0/24
     networks_netplan_enabled: true
     post_setup_script: ''
-    post_setup_script_timeout: 10
+    post_setup_script_timeout: 60
     prune_dangling_disks: true
     prune_dangling_networks: true
     qemu_machine_type: pc-q35-6.2
@@ -108,7 +108,7 @@ kvm1:
       subnet: 10.0.101.0/24
     networks_netplan_enabled: true
     post_setup_script: ''
-    post_setup_script_timeout: 10
+    post_setup_script_timeout: 60
     prune_dangling_disks: true
     prune_dangling_networks: true
     qemu_machine_type: pc-q35-6.2
@@ -152,7 +152,7 @@ kvm1:
       subnet: 10.0.101.0/24
     networks_netplan_enabled: true
     post_setup_script: ''
-    post_setup_script_timeout: 10
+    post_setup_script_timeout: 60
     prune_dangling_disks: true
     prune_dangling_networks: true
     qemu_machine_type: pc-q35-6.2
@@ -191,7 +191,7 @@ kvm2:
       subnet: 10.0.101.0/24
     networks_netplan_enabled: true
     post_setup_script: ''
-    post_setup_script_timeout: 10
+    post_setup_script_timeout: 60
     prune_dangling_disks: true
     prune_dangling_networks: true
     qemu_machine_type: pc-q35-6.2
@@ -246,7 +246,7 @@ kvm3:
       subnet: 10.0.102.0/24
     networks_netplan_enabled: true
     post_setup_script: ''
-    post_setup_script_timeout: 10
+    post_setup_script_timeout: 60
     prune_dangling_disks: true
     prune_dangling_networks: true
     qemu_machine_type: pc-q35-6.2
