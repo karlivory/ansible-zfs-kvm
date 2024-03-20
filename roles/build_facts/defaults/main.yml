@@ -18,7 +18,7 @@ zk_kvm_images:
     url: https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
     # checksum: sha256:https://dl.rockylinux.org/pub/rocky/9/images/x86_64/CHECKSUM # invalid format
     checksum: ""
-    virt_customize_run_command: 'echo SELINUX=disabled > /etc/sysconfig/selinux && sed -i "s/^BLOCK_RPCS=.*/BLOCK_RPCS=/" /etc/sysconfig/qemu-ga'
+    virt_customize_run_command: 'echo SELINUX=disabled > /etc/sysconfig/selinux && sed -i "s/^BLOCK_RPCS=.*/BLOCK_RPCS=/" /etc/sysconfig/qemu-ga && sed -i "s/net.ifnames=0/net.ifnames=1/" /etc/default/grub && grub2-mkconfig -o /boot/grub2/grub.cfg'
     virt_customize_uninstall_packages: cloud-init
     virt_customize_install_packages: qemu-guest-agent,NetworkManager-config-server
   - name: opensuse_leap
