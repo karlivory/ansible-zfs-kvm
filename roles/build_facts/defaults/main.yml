@@ -7,7 +7,7 @@ zk_vm_disks: []
 zk_vm_default_users: []
 zk_vm_users: []
 zk_vm_post_setup_script: ""
-zk_vm_post_setup_script_timeout: 10
+zk_vm_post_setup_script_timeout: 60
 zk_kvm_networks: []
 zk_kvm_images_download_timeout: 900
 zk_kvm_images_download_ignore_errors: false
