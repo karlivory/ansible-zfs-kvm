@@ -6,7 +6,7 @@
         groups: [newuser, sudo]
         passwordless_sudo: true
         ssh_keys: []
-  when: inventory_hostname in groups['zk_vms']
+  when: inventory_hostname in groups['zk-vms']
 
 - ansible.builtin.import_role:
     name: karlivory.zk.build_facts
@@ -18,7 +18,7 @@
     database: passwd
     key: newuser
   register: newuser_exists
-  when: inventory_hostname in groups['zk_vms']
+  when: inventory_hostname in groups['zk-vms']
 
 - name: Assert that newuser exists
   ansible.builtin.assert:
@@ -26,7 +26,7 @@
       - newuser_exists.ansible_facts.getent_passwd['newuser'] is defined
     fail_msg: User newuser does not exist
     success_msg: User newuser exists
-  when: inventory_hostname in groups['zk_vms']
+  when: inventory_hostname in groups['zk-vms']
 
 - set_fact:
     newuser_sshkey: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC0G2GRc3KqXqj2KsOnkhGc20sZEXqWd9ED9jiHNn2tAi6mweN5vIGfe6hwM3LX121dK2FuhlynbYsEAlsLh1OjIKpHM9zj+9pzWDegb2w03cK1kaVmPGTAdjiNlxEiXc5bK99Re7gr3toPu4w/zwK7F6yGbhcch2jzDTEKmNZp7Zxy7PS3LPQXvtzOwBmlC1GlaXN8+n6yadIlfyNILPsZoUr8KMBX5GCWuycM2JJXPZVUyegHhTEQM/ZY1GVIZrLLIHnDPosK/0XCGovqpETsLlmw3DAxxxUJjNI7DD07Ea7sNacWTzheKbKkxpDbrR0PD6RRtwMnaZZOkpWQcXTr/8Opalpa3wf0GFsg+bw1ZzXUi3Ct2RrvayQ22TalT+zEhrHXY6LtHzkgfxpYTVEqBp6qix9t51rYg0fHgedmJIXDtdKXHg6twbExGPu1M+GvcAOuY9RumXnrj6UN0OmUUYPKGH0rRWmTGduVmGRv8BgoUptKRmABMZCWEh0tumE= sshkey"
@@ -36,7 +36,7 @@
   ansible.builtin.group:
     name: newgroup
     state: present
-  when: inventory_hostname in groups['zk_vms']
+  when: inventory_hostname in groups['zk-vms']
 
 - name: Update vm users var (add ssh key, add group)
   ansible.builtin.set_fact:
@@ -45,7 +45,7 @@
         groups: [newuser, newgroup, sudo]
         passwordless_sudo: true
         ssh_keys: [" {{ newuser_sshkey }}"]
-  when: inventory_hostname in groups['zk_vms']
+  when: inventory_hostname in groups['zk-vms']
 
 - ansible.builtin.import_role:
     name: karlivory.zk.build_facts
@@ -57,12 +57,12 @@
   ansible.builtin.slurp:
     src: "/home/newuser/.ssh/authorized_keys"
   register: authorized_keys_content
-  when: inventory_hostname in groups['zk_vms']
+  when: inventory_hostname in groups['zk-vms']
 
 - name: Decode authorized_keys content
   ansible.builtin.set_fact:
     authorized_keys_decoded: "{{ authorized_keys_content['content'] | b64decode }}"
-  when: inventory_hostname in groups['zk_vms'] and authorized_keys_content is defined
+  when: inventory_hostname in groups['zk-vms'] and authorized_keys_content is defined
 
 - name: Check that newuser_sshkey is in authorized_keys of user newuser
   ansible.builtin.assert:
@@ -70,13 +70,13 @@
       - newuser_sshkey in authorized_keys_decoded
     fail_msg: SSH key for newuser is not in authorized_keys
     success_msg: SSH key for newuser is found in authorized_keys
-  when: inventory_hostname in groups['zk_vms'] and authorized_keys_content is defined
+  when: inventory_hostname in groups['zk-vms'] and authorized_keys_content is defined
 
 - name: Retrieve all group information
   ansible.builtin.getent:
     database: group
   register: group_info
-  when: inventory_hostname in groups['zk_vms']
+  when: inventory_hostname in groups['zk-vms']
 
 - name: Assert that newuser is in group "newgroup"
   ansible.builtin.assert:
@@ -84,4 +84,4 @@
       - "'newuser' in (group_info.ansible_facts.getent_group['newgroup'] | default([]))"
     fail_msg: User newuser does not exist
     success_msg: User newuser exists
-  when: inventory_hostname in groups['zk_vms']
+  when: inventory_hostname in groups['zk-vms']

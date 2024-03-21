@@ -8,4 +8,4 @@
 - name: Provision kvm_host
   ansible.builtin.include_tasks: ./provision_kvm_host.yml
   when:
-    - inventory_hostname in groups['zk_kvm_hosts']
+    - inventory_hostname in groups['zk-kvm-hosts']

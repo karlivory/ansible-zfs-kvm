@@ -20,7 +20,7 @@ all:
         passwordless_sudo: true
         ssh_keys: []
   children:
-    zk_vms:
+    zk-vms:
       hosts:
         testvm1:
           zk_vm_name: testvm1
@@ -43,7 +43,7 @@ all:
             - name: virbr0
               netplan:
                 addresses: [192.168.122.100/24]
-    zk_kvm_hosts:
+    zk-kvm-hosts:
       hosts:
         testkvm:
           ansible_host: localhost

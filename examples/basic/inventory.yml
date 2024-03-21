@@ -6,7 +6,7 @@ all:
     zk_vm_disk_default_zvol_parent: zroot/zk
     zk_vm_users: []
   children:
-    zk_vms:
+    zk-vms:
       hosts:
         testvm1:
           ansible_user: testuser
@@ -25,7 +25,7 @@ all:
             - name: virbr0
               netplan:
                 addresses: [192.168.122.100/24]
-    zk_kvm_hosts:
+    zk-kvm-hosts:
       hosts:
         testkvm:
           ansible_host: localhost

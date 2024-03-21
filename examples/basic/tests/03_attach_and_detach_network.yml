@@ -11,7 +11,7 @@
 - name: Update vm networks var (rm networks)
   ansible.builtin.set_fact:
     zk_vm_networks: []
-  when: inventory_hostname in groups['zk_vms']
+  when: inventory_hostname in groups['zk-vms']
 
 - ansible.builtin.import_role:
     name: karlivory.zk.build_facts
@@ -23,12 +23,12 @@
   register: vm_xml_after_removal
   delegate_to: "{{ zk_vm_kvm_hosts }}"
   changed_when: false
-  when: inventory_hostname in groups['zk_vms']
+  when: inventory_hostname in groups['zk-vms']
 - assert:
     that:
       - "'virbr0' not in vm_xml_after_removal.stdout"
     fail_msg: "Removed network is still present in domain XML"
-  when: inventory_hostname in groups['zk_vms']
+  when: inventory_hostname in groups['zk-vms']
 
 - name: Verify vm ping does not respond
   command: ping 192.168.122.100 -c 1 -w 1
@@ -41,12 +41,12 @@
   register: vm_xml_after_removal
   delegate_to: "{{ zk_vm_kvm_hosts }}"
   changed_when: false
-  when: inventory_hostname in groups['zk_vms']
+  when: inventory_hostname in groups['zk-vms']
 - assert:
     that:
       - "'virbr0' not in vm_xml_after_removal.stdout"
     fail_msg: "Removed network is still present in domain XML"
-  when: inventory_hostname in groups['zk_vms']
+  when: inventory_hostname in groups['zk-vms']
 
 - name: Update vm networks var (add network)
   ansible.builtin.set_fact:
@@ -54,7 +54,7 @@
       - name: virbr0
         netplan:
           addresses: [192.168.122.101/24]
-  when: inventory_hostname in groups['zk_vms']
+  when: inventory_hostname in groups['zk-vms']
 
 - ansible.builtin.import_role:
     name: karlivory.zk.build_facts
@@ -66,12 +66,12 @@
   register: vm_xml
   delegate_to: "{{ zk_vm_kvm_hosts }}"
   changed_when: false
-  when: inventory_hostname in groups['zk_vms']
+  when: inventory_hostname in groups['zk-vms']
 - assert:
     that:
       - "'virbr0' in vm_xml.stdout"
     fail_msg: "Network is not present in domain XML"
-  when: inventory_hostname in groups['zk_vms']
+  when: inventory_hostname in groups['zk-vms']
 
 - name: Update vm networks var (add network)
   ansible.builtin.set_fact:
@@ -81,7 +81,7 @@
           addresses:
             - 192.168.122.100/24
             - 192.168.122.101/24
-  when: inventory_hostname in groups['zk_vms']
+  when: inventory_hostname in groups['zk-vms']
 
 - ansible.builtin.import_role:
     name: karlivory.zk.build_facts
@@ -109,7 +109,7 @@
 - name: Reboot vm
   ansible.builtin.reboot:
   become: true
-  when: inventory_hostname in groups['zk_vms']
+  when: inventory_hostname in groups['zk-vms']
 
 - name: Verify vm ping responds (address 1)
   delegate_to: localhost

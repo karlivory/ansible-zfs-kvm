@@ -30,7 +30,7 @@
             passwordless_sudo: true
             ssh_keys: ["{{ slurped_ssh_key.content | b64decode }}"]
       when:
-        - inventory_hostname in groups['zk_vms']
+        - inventory_hostname in groups['zk-vms']
 
     - ansible.builtin.import_role:
         name: karlivory.zk.provision

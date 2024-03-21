@@ -8,7 +8,7 @@
 - name: Gather info from kvm host
   ansible.builtin.include_tasks: ./01_get_info.yml
   when:
-    - inventory_hostname in groups['zk_kvm_hosts']
+    - inventory_hostname in groups['zk-kvm-hosts']
 
 - name: Create vm
   ansible.builtin.include_tasks: ./02_define_domain.yml
@@ -16,7 +16,7 @@
   loop_control:
     loop_var: vm
   when:
-    - inventory_hostname in groups['zk_kvm_hosts']
+    - inventory_hostname in groups['zk-kvm-hosts']
 
 - name: Wait for qemu-guest-agent
   ansible.builtin.include_tasks: ./wait_for_qemu_agent.yml
@@ -24,7 +24,7 @@
   loop_control:
     loop_var: vm
   when:
-    - inventory_hostname in groups['zk_kvm_hosts']
+    - inventory_hostname in groups['zk-kvm-hosts']
 
 - name: Set up vm networks, disks
   ansible.builtin.include_tasks: ./03_vm_setup.yml
@@ -32,4 +32,4 @@
   loop_control:
     loop_var: vm
   when:
-    - inventory_hostname in groups['zk_kvm_hosts']
+    - inventory_hostname in groups['zk-kvm-hosts']

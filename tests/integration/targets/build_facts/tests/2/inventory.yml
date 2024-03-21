@@ -1,11 +1,11 @@
 ---
-zk_vms:
+zk-vms:
   children:
     vmgroup1:
     vmgroup2:
     vmgroup3:
 
-zk_kvm_hosts:
+zk-kvm-hosts:
   children:
     kvmgroup1:
     kvmgroup2:

@@ -21,7 +21,7 @@
   delegate_to: localhost
   connection: local
   when:
-    - inventory_hostname in groups['zk_vms']
+    - inventory_hostname in groups['zk-vms']
 
 # zk_vm_kvm_hosts is either a single host or a host group, so we convert it to
 # zk_kvm_host_list = [host1, host2, ...]
@@ -30,7 +30,7 @@
   delegate_to: localhost
   connection: local
   when:
-    - inventory_hostname in groups['zk_vms']
+    - inventory_hostname in groups['zk-vms']
 
 - ansible.builtin.set_fact:
     zk_kvm_vms: "{{ [] }}"
@@ -38,7 +38,7 @@
     zk_kvm_vms: "{{ zk_kvm_vms  + [hostvars[item].zk_vm] }}"
   delegate_to: localhost
   connection: local
-  loop: "{{ groups['zk_vms'] }}"
+  loop: "{{ groups['zk-vms'] }}"
   when:
     - inventory_hostname in hostvars[item].zk_kvm_host_list | default([])
 
@@ -52,7 +52,7 @@
   delegate_to: localhost
   connection: local
   when:
-    - inventory_hostname in groups['zk_kvm_hosts']
+    - inventory_hostname in groups['zk-kvm-hosts']
   register: build_zk_kvm
 
 - ansible.builtin.set_fact:
@@ -60,11 +60,11 @@
   delegate_to: localhost
   connection: local
   when:
-    - inventory_hostname in groups['zk_kvm_hosts']
+    - inventory_hostname in groups['zk-kvm-hosts']
 
 - karlivory.zk.validate_kvm_config:
     to_validate: "{{ zk_kvm }}"
   delegate_to: localhost
   connection: local
   when:
-    - inventory_hostname in groups['zk_kvm_hosts']
+    - inventory_hostname in groups['zk-kvm-hosts']

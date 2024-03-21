@@ -11,7 +11,7 @@
         zk: "{{ zk | default({}) | combine({item: hostvars[item].zk_kvm}) }}"
       delegate_to: localhost
       connection: local
-      loop: "{{ groups['zk_kvm_hosts'] }}"
+      loop: "{{ groups['zk-kvm-hosts'] }}"
       run_once: true
 
     - ansible.builtin.set_fact:
@@ -34,7 +34,7 @@
         zk: "{{ zk | default({}) | combine({item: hostvars[item].zk_kvm}) }}"
       delegate_to: localhost
       connection: local
-      loop: "{{ groups['zk_kvm_hosts'] }}"
+      loop: "{{ groups['zk-kvm-hosts'] }}"
       run_once: true
 
     - ansible.builtin.set_fact:

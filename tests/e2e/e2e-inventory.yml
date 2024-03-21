@@ -19,7 +19,7 @@ all:
         netplan:
           addresses: ["{{ ansible_host }}/24"]
   children:
-    zk_kvm_hosts:
+    zk-kvm-hosts:
       hosts:
         testkvm:
           ansible_host: localhost
@@ -40,7 +40,7 @@ all:
                 nameservers:
                   addresses:
                     - 1.1.1.1
-    zk_vms:
+    zk-vms:
       hosts:
         testvm-debian11:
           ansible_host: 192.168.122.100

@@ -3,7 +3,7 @@
   ansible.builtin.wait_for_connection:
     delay: 10
     timeout: 120
-  when: inventory_hostname in groups['zk_vms']
+  when: inventory_hostname in groups['zk-vms']
 
 - ansible.builtin.ping:
-  when: inventory_hostname in groups['zk_vms']
+  when: inventory_hostname in groups['zk-vms']
